@@ -2,9 +2,14 @@ package p1.t7.vista.romeumusetelena;
 
 import javax.swing.*;
 import java.awt.*;
+import org.esportsapp.persistencia.IPersistencia;
+import p1.t6.model.romeumusetelena.GestorBDEsportsException;
 
 public class PantallaIniciSessio {
-    public void mostrarPantallaIniciSessio() {
+    private IPersistencia persistencia;
+    
+    public void mostrarPantallaIniciSessio(IPersistencia persistencia) {
+        this.persistencia = persistencia;
         // Crear el frame principal
         JFrame frame = new JFrame("Inici de Sessió - Gestió Futbol");
         frame.setSize(900, 600);
@@ -68,11 +73,15 @@ public class PantallaIniciSessio {
             String usuari = txtUsuari.getText();
             String contrasenya = new String(txtContrasenya.getPassword());
 
-            if ("elena".equals(usuari) && "1234".equals(contrasenya)) {
-                frame.dispose(); // Tanca la pantalla actual
-                new PantallaPrincipal(); // Obre la pantalla principal
-            } else {
-                JOptionPane.showMessageDialog(frame, "Usuari o contrasenya incorrecte!");
+            try {
+                if (persistencia.validarUsuari(usuari, contrasenya)) {
+                    frame.dispose(); // Tanca la pantalla actual
+                    new PantallaPrincipal(persistencia); // Obre la pantalla principal
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Usuari o contrasenya incorrecte!");
+                }
+            } catch (GestorBDEsportsException ex) {
+                JOptionPane.showMessageDialog(frame, "Error en validar l'usuari: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 

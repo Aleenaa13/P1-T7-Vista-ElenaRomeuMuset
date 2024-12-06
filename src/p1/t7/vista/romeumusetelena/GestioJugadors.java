@@ -1,12 +1,20 @@
 package p1.t7.vista.romeumusetelena;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.List;
+import org.esportsapp.persistencia.IPersistencia;
+import p1.t6.model.romeumusetelena.GestorBDEsportsException;
+import p1.t6.model.romeumusetelena.Jugador;
 
 public class GestioJugadors {
-    public GestioJugadors() {
+    private IPersistencia persistencia; // Per accedir a la interfície de persistència
+    private DefaultTableModel modelTaulaJugadors;
+
+    public GestioJugadors(IPersistencia persistencia) {
+        this.persistencia = persistencia; // Inicialitzar la interfície de persistència
+
         // Crear el frame
         JFrame frame = new JFrame("Gestió de Jugadors");
         frame.setSize(900, 600);
@@ -38,26 +46,25 @@ public class GestioJugadors {
         }
 
         // Afegir acció als botons del menú
-        botonsMenu[5].addActionListener(e -> TancarSessio.executar(frame));
+        botonsMenu[5].addActionListener(e -> {
+            frame.dispose();
+            new TancarSessio();
+        });
         botonsMenu[0].addActionListener(e -> {
             frame.dispose();
-            new PantallaPrincipal();
+            new PantallaPrincipal(persistencia);
         });
         botonsMenu[1].addActionListener(e -> {
             frame.dispose();
-            new GestioEquips();
+            new GestioEquips(persistencia);
         });
         botonsMenu[2].addActionListener(e -> {
             frame.dispose();
-            new GestioJugadors();
+            new GestioJugadors(persistencia);
         });
         botonsMenu[3].addActionListener(e -> {
             frame.dispose();
-            new GestioTemporades();
-        });
-        botonsMenu[4].addActionListener(e -> {
-            frame.dispose();
-            //new InformeEquips();
+            new GestioTemporades(persistencia);
         });
 
         // Títol centrat
@@ -67,97 +74,74 @@ public class GestioJugadors {
         titol.setForeground(new Color(70, 130, 180));
         frame.add(titol);
 
-        // Taula per mostrar els jugadors
-        String[] columnes = {"Nom", "Cognoms", "Categoria", "Posició"};
-        String[][] dades = {
-            {"Neus", "Pujol", "Benjamí", "Titular"},
-            {"Maria", "Vidal", "Benjamí", "Titular"},
-            {"Joana", "Font", "Aleví", "Convidada"}
+        // Configurar la taula
+        modelTaulaJugadors = new DefaultTableModel(new String[]{"ID Legal", "Nom", "Cognoms", "Edat", "Categoria"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Cap cel·la és editable
+            }
         };
-        JTable taulaJugadors = new JTable(dades, columnes);
+
+        JTable taulaJugadors = new JTable(modelTaulaJugadors);
+        taulaJugadors.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Només una fila seleccionable
         JScrollPane scrollPane = new JScrollPane(taulaJugadors);
         scrollPane.setBounds(50, 150, 800, 300);
         frame.add(scrollPane);
 
-        // Busca per nom
-        JLabel lblBuscaNom = new JLabel("Busca per nom:");
-        lblBuscaNom.setBounds(50, 470, 150, 30);
-        frame.add(lblBuscaNom);
-
-        JTextField txtBuscaNom = new JTextField();
-        txtBuscaNom.setBounds(150, 470, 200, 30);
-        frame.add(txtBuscaNom);
-
-        // Botó cerca (lupa)
-        JButton btnBuscar = new JButton("🔍 Buscar");
-        btnBuscar.setBounds(360, 470, 100, 30);
-        btnBuscar.setBackground(new Color(173, 216, 230)); // Blau cel
-        btnBuscar.setFocusPainted(false);
-        frame.add(btnBuscar);
-
-        // Filtres ComboBox
-        JLabel lblCategoria = new JLabel("Filtra per categoria:");
-        lblCategoria.setBounds(550, 470, 150, 30);
-        frame.add(lblCategoria);
-
-        JComboBox<String> cmbCategoria = new JComboBox<>(new String[]{"Totes", "Benjamí", "Aleví", "Infantil"});
-        cmbCategoria.setBounds(700, 470, 150, 30);
-        frame.add(cmbCategoria);
-
-        JLabel lblTemporada = new JLabel("Filtra per temporada:");
-        lblTemporada.setBounds(550, 510, 150, 30);
-        frame.add(lblTemporada);
-
-        JComboBox<String> cmbTemporada = new JComboBox<>(new String[]{"2024", "2023", "2022", "2021"});
-        cmbTemporada.setBounds(700, 510, 150, 30);
-        frame.add(cmbTemporada);
-
-        // Afegir, editar, eliminar
+        // Botons d'acció
         JButton btnAfegir = new JButton("Afegir");
-        btnAfegir.setBounds(100, 520, 100, 30);
+        btnAfegir.setBounds(100, 470, 100, 30);
         btnAfegir.setBackground(new Color(173, 216, 230)); // Blau cel
         btnAfegir.setFocusPainted(false);
         frame.add(btnAfegir);
 
         JButton btnEditar = new JButton("Editar");
-        btnEditar.setBounds(250, 520, 100, 30);
+        btnEditar.setBounds(250, 470, 100, 30);
         btnEditar.setBackground(new Color(173, 216, 230)); // Blau cel
         btnEditar.setFocusPainted(false);
         frame.add(btnEditar);
 
         JButton btnEliminar = new JButton("Eliminar");
-        btnEliminar.setBounds(400, 520, 100, 30);
+        btnEliminar.setBounds(400, 470, 100, 30);
         btnEliminar.setBackground(new Color(173, 216, 230)); // Blau cel
         btnEliminar.setFocusPainted(false);
         frame.add(btnEliminar);
 
-        // Funcionalitat de cerca per nom
-        btnBuscar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String nom = txtBuscaNom.getText().toLowerCase();
-                // Filtrar les dades per nom (contains)
-                for (int i = 0; i < taulaJugadors.getRowCount(); i++) {
-                    boolean matches = false;
-                    for (int j = 0; j < taulaJugadors.getColumnCount(); j++) {
-                        String value = taulaJugadors.getValueAt(i, j).toString().toLowerCase();
-                        if (value.contains(nom)) {
-                            matches = true;
-                            break;
-                        }
-                    }
-                    // Mostrar només les files que coincideixen
-                    if (matches) {
-                        taulaJugadors.setRowSelectionAllowed(true);
-                        taulaJugadors.setRowSelectionInterval(i, i);
-                    } else {
-                        taulaJugadors.setRowSelectionAllowed(false);
-                    }
-                }
-            }
-        });
+        // Carregar dades de la base de dades
+        carregarJugadors();
 
         // Mostrar el frame
         frame.setVisible(true);
+    }
+
+    private void carregarJugadors() {
+        try {
+            List<Jugador> jugadors = persistencia.obtenirTotsJugadors(); // Obtenim els jugadors de la BD
+            modelTaulaJugadors.setRowCount(0); // Esborrem les dades antigues
+
+            for (Jugador jugador : jugadors) {
+                modelTaulaJugadors.addRow(new Object[]{
+                    jugador.getIdLegal(),
+                    jugador.getNom(),
+                    jugador.getCognoms(),
+                    calcularEdat(jugador.getDataNaix()),
+                    jugador.getCategoria() // Categoria calculada a la classe Jugador
+                });
+            }
+        } catch (GestorBDEsportsException e) {
+            JOptionPane.showMessageDialog(null, "Error en obtenir els jugadors: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private int calcularEdat(java.util.Date dataNaix) {
+        java.util.Calendar avui = java.util.Calendar.getInstance();
+        java.util.Calendar dataNaixement = java.util.Calendar.getInstance();
+        dataNaixement.setTime(dataNaix);
+
+        int edat = avui.get(java.util.Calendar.YEAR) - dataNaixement.get(java.util.Calendar.YEAR);
+        if (avui.get(java.util.Calendar.DAY_OF_YEAR) < dataNaixement.get(java.util.Calendar.DAY_OF_YEAR)) {
+            edat--;
+        }
+        return edat;
     }
 }

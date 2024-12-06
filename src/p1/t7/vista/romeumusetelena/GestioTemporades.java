@@ -1,25 +1,33 @@
 package p1.t7.vista.romeumusetelena;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.List;
+import org.esportsapp.persistencia.IPersistencia;
+import p1.t6.model.romeumusetelena.GestorBDEsportsException;
+import p1.t6.model.romeumusetelena.Temporada;
 
 public class GestioTemporades {
-    public GestioTemporades() {
+    private IPersistencia persistencia; // Per accedir a la interfície de persistència
+    private DefaultTableModel modelTaulaTemporades;
+
+    public GestioTemporades(IPersistencia persistencia) {
+        this.persistencia = persistencia;
+
         // Crear el frame
         JFrame frame = new JFrame("Gestió de Temporades");
         frame.setSize(900, 600);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(null);
-        frame.setResizable(false); // Finestra no redimensionable
-        frame.setLocationRelativeTo(null); // Centrar la finestra
+        frame.setResizable(false);
+        frame.setLocationRelativeTo(null);
 
         // Fons blanc trencat
         Color blancTrencat = new Color(245, 245, 245);
         frame.getContentPane().setBackground(blancTrencat);
 
-        // Menú superior (fix)
+        // Menú superior
         int numBotons = 6;
         int ampladaBoto = 900 / numBotons;
         int alturaBoto = 40;
@@ -37,27 +45,23 @@ public class GestioTemporades {
             frame.add(botonsMenu[i]);
         }
 
-        // Afegir acció als botons del menú
-        botonsMenu[5].addActionListener(e -> TancarSessio.executar(frame));
+        // Vincular accions als botons del menú
+        botonsMenu[5].addActionListener(e -> {
+            frame.dispose();
+            new TancarSessio();
+        });
+                
         botonsMenu[0].addActionListener(e -> {
             frame.dispose();
-            new PantallaPrincipal();
+            new PantallaPrincipal(persistencia);
         });
         botonsMenu[1].addActionListener(e -> {
             frame.dispose();
-            new GestioEquips();
+            new GestioEquips(persistencia);
         });
         botonsMenu[2].addActionListener(e -> {
             frame.dispose();
-            new GestioJugadors();
-        });
-        botonsMenu[3].addActionListener(e -> {
-            frame.dispose();
-            new GestioTemporades();
-        });
-        botonsMenu[4].addActionListener(e -> {
-            frame.dispose();
-            //new InformeEquips();
+            new GestioJugadors(persistencia);
         });
 
         // Títol centrat
@@ -67,66 +71,85 @@ public class GestioTemporades {
         titol.setForeground(new Color(70, 130, 180));
         frame.add(titol);
 
-        // Taula per mostrar les temporades
-        String[] columnes = {"Any"};
-        String[][] dades = {
-            {"2024"},
-            {"2023"},
-            {"2022"}
+        // Configurar la taula
+        modelTaulaTemporades = new DefaultTableModel(new String[]{"Any"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Cap cel·la és editable
+            }
         };
-        JTable taulaTemporades = new JTable(dades, columnes);
+
+        JTable taulaTemporades = new JTable(modelTaulaTemporades);
+        taulaTemporades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(taulaTemporades);
-        scrollPane.setBounds(300, 150, 300, 300); // Ajustem la taula amb amplada de 300 i centrada
+        scrollPane.setBounds(300, 150, 300, 300);
         frame.add(scrollPane);
 
-        // Cerca per any
-        JLabel lblBuscaAny = new JLabel("Busca per any:");
-        lblBuscaAny.setBounds(350, 495, 150, 30);
-        frame.add(lblBuscaAny);
-
-        JTextField txtBuscaAny = new JTextField();
-        txtBuscaAny.setBounds(450, 495, 200, 30);
-        frame.add(txtBuscaAny);
-
-        // Afegir, eliminar
+        // Botons
         JButton btnAfegir = new JButton("Afegir");
-        btnAfegir.setBounds(40, 495, 100, 30);
-        btnAfegir.setBackground(new Color(173, 216, 230)); // Blau cel
-        btnAfegir.setFocusPainted(false);
+        btnAfegir.setBounds(100, 470, 100, 30);
+        btnAfegir.setBackground(new Color(173, 216, 230));
         frame.add(btnAfegir);
 
         JButton btnEliminar = new JButton("Eliminar");
-        btnEliminar.setBounds(170, 495, 100, 30);
-        btnEliminar.setBackground(new Color(173, 216, 230)); // Blau cel
-        btnEliminar.setFocusPainted(false);
+        btnEliminar.setBounds(250, 470, 100, 30);
+        btnEliminar.setBackground(new Color(173, 216, 230));
         frame.add(btnEliminar);
 
-        // Botó cerca (lupa)
+        JLabel lblBuscaAny = new JLabel("Busca per any:");
+        lblBuscaAny.setBounds(400, 470, 100, 30);
+        frame.add(lblBuscaAny);
+
+        JTextField txtBuscaAny = new JTextField();
+        txtBuscaAny.setBounds(500, 470, 100, 30);
+        frame.add(txtBuscaAny);
+
         JButton btnBuscar = new JButton("🔍 Buscar");
-        btnBuscar.setBounds(680, 495, 100, 30); // A la dreta dels altres botons
-        btnBuscar.setBackground(new Color(173, 216, 230)); // Blau cel
-        btnBuscar.setFocusPainted(false);
+        btnBuscar.setBounds(620, 470, 100, 30);
+        btnBuscar.setBackground(new Color(173, 216, 230));
         frame.add(btnBuscar);
 
-        // Funcionalitat de cerca per any
-        btnBuscar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String any = txtBuscaAny.getText();
-                // Filtrar les dades per any (equals)
-                for (int i = 0; i < taulaTemporades.getRowCount(); i++) {
-                    String value = taulaTemporades.getValueAt(i, 0).toString();
-                    if (value.equals(any)) {
-                        taulaTemporades.setRowSelectionAllowed(true);
-                        taulaTemporades.setRowSelectionInterval(i, i);
-                    } else {
-                        taulaTemporades.setRowSelectionAllowed(false);
-                    }
-                }
+        // Carregar dades de la base de dades
+        carregarTemporades();
+
+        // Funció de cerca
+        btnBuscar.addActionListener(e -> {
+            String anyText = txtBuscaAny.getText();
+            try {
+                int any = Integer.parseInt(anyText);
+                carregarTemporades(any);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Introdueix un any vàlid.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         // Mostrar el frame
         frame.setVisible(true);
+    }
+
+    private void carregarTemporades() {
+        try {
+            List<Temporada> temporades = persistencia.obtenirTotesTemporades();
+            modelTaulaTemporades.setRowCount(0);
+            for (Temporada temporada : temporades) {
+                modelTaulaTemporades.addRow(new Object[]{temporada.getAny()});
+            }
+        } catch (GestorBDEsportsException e) {
+            JOptionPane.showMessageDialog(null, "Error en obtenir les temporades: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void carregarTemporades(int any) {
+        try {
+            List<Temporada> temporades = persistencia.obtenirTotesTemporades();
+            modelTaulaTemporades.setRowCount(0);
+            for (Temporada temporada : temporades) {
+                if (temporada.getAny() == any) {
+                    modelTaulaTemporades.addRow(new Object[]{temporada.getAny()});
+                }
+            }
+        } catch (GestorBDEsportsException e) {
+            JOptionPane.showMessageDialog(null, "Error en obtenir les temporades: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

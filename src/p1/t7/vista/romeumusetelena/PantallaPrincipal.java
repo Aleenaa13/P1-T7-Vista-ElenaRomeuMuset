@@ -2,9 +2,14 @@ package p1.t7.vista.romeumusetelena;
 
 import javax.swing.*;
 import java.awt.*;
+import org.esportsapp.persistencia.IPersistencia;
 
 public class PantallaPrincipal {
-    public PantallaPrincipal() {
+    private final IPersistencia persistencia; // Interfície de persistència
+
+    public PantallaPrincipal(IPersistencia persistencia) {
+        this.persistencia = persistencia; // Inicialitzar la interfície de persistència
+
         // Crear el frame principal amb mida fixa
         JFrame frame = new JFrame("Pantalla Principal - Gestió Futbol");
         frame.setSize(900, 600);
@@ -36,7 +41,7 @@ public class PantallaPrincipal {
         }
 
         // Afegir acció al botó "Tancar Sessió"
-        botonsMenu[5].addActionListener(e -> TancarSessio.executar(frame));
+        botonsMenu[5].addActionListener(e -> TancarSessio.executar(frame, persistencia));
 
         // Afegir accions als altres botons
         botonsMenu[0].addActionListener(e -> mostrarPantallaInici(frame));
@@ -57,14 +62,14 @@ public class PantallaPrincipal {
         btnVisualitzacioEquips.setBounds(300, 150, 300, 50);
         btnVisualitzacioEquips.setBackground(new Color(173, 216, 230));
         btnVisualitzacioEquips.setFocusPainted(false);
-        btnVisualitzacioEquips.addActionListener(e -> mostrarGestioEquips(frame)); // Vinculació al botó Gestió d'Equips
+        btnVisualitzacioEquips.addActionListener(e -> mostrarGestioEquips(frame));
         frame.add(btnVisualitzacioEquips);
 
         JButton btnGestioJugadorsCentral = new JButton("Gestió de Jugadors");
         btnGestioJugadorsCentral.setBounds(300, 230, 300, 50);
         btnGestioJugadorsCentral.setBackground(new Color(173, 216, 230));
         btnGestioJugadorsCentral.setFocusPainted(false);
-        btnGestioJugadorsCentral.addActionListener(e -> mostrarGestioJugadors(frame)); // Vinculació al botó Gestió de Jugadors
+        btnGestioJugadorsCentral.addActionListener(e -> mostrarGestioJugadors(frame));
         frame.add(btnGestioJugadorsCentral);
 
         // Mostrar el frame
@@ -73,35 +78,26 @@ public class PantallaPrincipal {
     }
 
     private void mostrarPantallaInici(JFrame frame) {
-        // Lògica per a mostrar la pantalla d'inici
         JOptionPane.showMessageDialog(frame, "Pantalla d'Inici");
     }
 
     private void mostrarGestioEquips(JFrame frame) {
-        // Ocultar la pantalla principal
         frame.setVisible(false);
-        // Crida al constructor de la classe GestioEquips
-        new GestioEquips();
+        new GestioEquips(persistencia); // Passa la persistència a la nova pantalla
     }
 
     private void mostrarGestioJugadors(JFrame frame) {
-        // Ocultar la pantalla principal
         frame.setVisible(false);
-        // Crida al constructor de la classe GestioJugadors
-        new GestioJugadors();
+        new GestioJugadors(persistencia); // Passa la persistència a la nova pantalla
     }
 
     private void mostrarGestioTemporades(JFrame frame) {
-        // Ocultar la pantalla principal
         frame.setVisible(false);
-        // Crida al constructor de la classe GestioTemporades
-        new GestioTemporades();
+        new GestioTemporades(persistencia); // Passa la persistència a la nova pantalla
     }
 
     private void mostrarInformeEquips(JFrame frame) {
-        // Ocultar la pantalla principal
         frame.setVisible(false);
-        // Crida al constructor de la classe InformeEquips
-        //new InformeEquips();
+        // Implementar si hi ha una classe InformeEquips
     }
 }
