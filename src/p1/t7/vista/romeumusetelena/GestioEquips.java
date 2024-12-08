@@ -9,6 +9,7 @@ import org.esportsapp.persistencia.IPersistencia;
 import p1.t6.model.romeumusetelena.Equip;
 import p1.t6.model.romeumusetelena.GestorBDEsportsException;
 import p1.t6.model.romeumusetelena.Temporada;
+import p1.t6.model.romeumusetelena.TipusEquip;
 
 public class GestioEquips {
     private IPersistencia persistencia;
@@ -245,8 +246,21 @@ public class GestioEquips {
         frame.add(botoAfegirEquip);
 
         botoAfegirEquip.addActionListener(e -> {
-            // Lògica per afegir un equip (per implementar)
-            JOptionPane.showMessageDialog(frame, "Funció d'afegir equip encara no implementada.");
+            try {
+                JFrame finestraAfegir = new JFrame("Afegir Equip");
+                finestraAfegir.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                finestraAfegir.setSize(900, 600);
+                finestraAfegir.setLayout(new BorderLayout());
+                finestraAfegir.setResizable(false);
+                finestraAfegir.setLocationRelativeTo(null);
+
+                AfegirEditarEquip panellAfegir = new AfegirEditarEquip(persistencia, true, null);
+                finestraAfegir.add(panellAfegir, BorderLayout.CENTER);
+
+                finestraAfegir.setVisible(true);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         });
 
         return botoAfegirEquip;
@@ -259,18 +273,51 @@ public class GestioEquips {
         frame.add(botoModificarEquip);
 
         botoModificarEquip.addActionListener(e -> {
-            int filaSeleccionada = taulaEquips.getSelectedRow();
-            if (filaSeleccionada != -1) {
-                String nomEquip = modelTaulaEquips.getValueAt(filaSeleccionada, 0).toString();
-                JOptionPane.showMessageDialog(frame, "Modificant equip: " + nomEquip);
-                // Lògica per modificar l'equip (per implementar)
-            } else {
-                JOptionPane.showMessageDialog(frame, "Selecciona un equip per modificar.", "Error", JOptionPane.WARNING_MESSAGE);
+            try {
+                // Obtenir la fila seleccionada de la taula
+                int filaSeleccionada = taulaEquips.getSelectedRow();
+
+                // Verificar si s'ha seleccionat alguna fila
+                if (filaSeleccionada != -1) {
+                    String nomEquip = modelTaulaEquips.getValueAt(filaSeleccionada, 0).toString();
+                    // Mostra un missatge informatiu amb el nom de l'equip seleccionat
+                    JOptionPane.showMessageDialog(frame, "Modificant equip: " + nomEquip);
+
+                    // Obtenir les dades de l'equip seleccionat
+                    int idEquip = (int) modelTaulaEquips.getValueAt(filaSeleccionada, 0);  // Assumint que l'ID de l'equip és la primera columna
+                    String tipusEquipString = modelTaulaEquips.getValueAt(filaSeleccionada, 1).toString();
+                    TipusEquip tipusEquip = TipusEquip.valueOf(tipusEquipString);  // Assumint que TipusEquip és un enum
+                    int anyTemporada = Integer.parseInt(modelTaulaEquips.getValueAt(filaSeleccionada, 2).toString());
+                    int idCategoria = Integer.parseInt(modelTaulaEquips.getValueAt(filaSeleccionada, 3).toString());
+
+                    // Crear l'objecte Equip amb les dades obtingudes
+                    Equip equipSeleccionat = new Equip(idEquip, nomEquip, tipusEquip, anyTemporada, idCategoria);
+
+                    // Crear la finestra per editar l'equip
+                    JFrame finestraModificar = new JFrame("Modificar Equip");
+                    finestraModificar.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                    finestraModificar.setSize(900, 600);
+                    finestraModificar.setLayout(new BorderLayout());
+                    finestraModificar.setResizable(false);
+                    finestraModificar.setLocationRelativeTo(null);
+
+                    // Crear el panell d'editar equip i passar-li l'equip seleccionat
+                    AfegirEditarEquip panellAfegirEditar = new AfegirEditarEquip(persistencia, true, equipSeleccionat);
+                    finestraModificar.add(panellAfegirEditar, BorderLayout.CENTER);
+
+                    // Fer visible la finestra
+                    finestraModificar.setVisible(true);
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Selecciona un equip per modificar.", "Error", JOptionPane.WARNING_MESSAGE);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();  // Mostrar error a la consola
             }
         });
 
         return botoModificarEquip;
     }
+
 
     private JButton crearBotoEliminar(JFrame frame) {
         JButton botoEliminarEquip = new JButton("Eliminar");
