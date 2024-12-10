@@ -19,6 +19,19 @@ public class IniciarPrograma {
             persistencia = (IPersistencia) Class.forName(nomClassePersistencia).newInstance();
             PantallaIniciSessio pantallaInici = new PantallaIniciSessio();
             pantallaInici.mostrarPantallaIniciSessio(persistencia);
+            
+            
+            IPersistencia finalPersistencia = persistencia; // Necesario porque las variables deben ser effectively final
+            
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    //System.out.println("Tancant la connexió amb la base de dades...");
+                    finalPersistencia.tancarConnexio(); // Método para cerrar la conexión
+                    //System.out.println("Connexió tancada correctament.");
+                } catch (Exception e) {
+                   // System.err.println("Error en tancar la connexió: " + e.getMessage());
+                }
+            }));
         } catch(Exception ex){
             System.out.println(ex.getMessage());
             //JOptionPane.showMessageDialog(º"Usuari o contrasenya incorrecte!", "Error", JOptionPane.ERROR_MESSAGE);

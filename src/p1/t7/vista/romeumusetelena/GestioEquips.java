@@ -281,7 +281,7 @@ public class GestioEquips {
                 if (filaSeleccionada != -1) {
                     String nomEquip = modelTaulaEquips.getValueAt(filaSeleccionada, 0).toString();
                     // Mostra un missatge informatiu amb el nom de l'equip seleccionat
-                    JOptionPane.showMessageDialog(frame, "Modificant equip: " + nomEquip);
+                    //JOptionPane.showMessageDialog(frame, "Modificant equip: " + nomEquip);
 
                     // Obtenir les dades de l'equip seleccionat
                     int idEquip = (int) modelTaulaEquips.getValueAt(filaSeleccionada, 0);  // Assumint que l'ID de l'equip és la primera columna

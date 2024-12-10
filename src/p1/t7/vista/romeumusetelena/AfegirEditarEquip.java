@@ -224,6 +224,7 @@ public class AfegirEditarEquip extends JPanel {
             Equip nouEquip = new Equip(nom, tipus, temporadaSeleccionada.getAny(), categoriaSeleccionada.getId());
             try {
                 persistencia.afegirEquip(nouEquip);
+                //persistencia.confirmarCanvis();
                 JOptionPane.showMessageDialog(this, "Equip afegit correctament!", "Èxit", JOptionPane.INFORMATION_MESSAGE);
                 SwingUtilities.getWindowAncestor(this).dispose();
             } catch (GestorBDEsportsException e) {

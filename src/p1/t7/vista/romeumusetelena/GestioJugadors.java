@@ -4,8 +4,11 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.esportsapp.persistencia.IPersistencia;
 import p1.t6.model.romeumusetelena.GestorBDEsportsException;
 import p1.t6.model.romeumusetelena.Jugador;
@@ -13,6 +16,10 @@ import p1.t6.model.romeumusetelena.Jugador;
 public class GestioJugadors {
     private IPersistencia persistencia; // Per accedir a la interfície de persistència
     private DefaultTableModel modelTaulaJugadors;
+    private  JTable taulaJugadors;
+    private List<Jugador> jugadors; // Lista de jugadores cargada de la base de datos
+    private List<Jugador> jugadorsFiltrats; // Lista sincronizada con la tabla
+    
 
     public GestioJugadors(IPersistencia persistencia) {
         this.persistencia = persistencia; // Inicialitzar la interfície de persistència
@@ -84,7 +91,7 @@ public class GestioJugadors {
             }
         };
 
-        JTable taulaJugadors = new JTable(modelTaulaJugadors);
+        taulaJugadors = new JTable(modelTaulaJugadors);
         taulaJugadors.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Només una fila seleccionable
         JScrollPane scrollPane = new JScrollPane(taulaJugadors);
         scrollPane.setBounds(50, 150, 800, 300);
@@ -119,24 +126,73 @@ public class GestioJugadors {
         btnAfegir.setBackground(new Color(173, 216, 230)); // Blau cel
         btnAfegir.setFocusPainted(false);
         frame.add(btnAfegir);
-
+        
+        btnAfegir.addActionListener(e -> {
+            // Obrir el formulari per afegir un jugador
+            /*Jugador nouJugador = AfegirEditarJugador.mostrarFormulari(null);
+            if (nouJugador != null) {
+                try {
+                    // Guardar el jugador a la persistència
+                    persistencia.afegirJugador(nouJugador); // Aquesta funció guardarà el jugador a la base de dades
+                    persistencia.confirmarCanvis();
+                    JOptionPane.showMessageDialog(frame, "Jugador afegit correctament!");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(frame, "Error al guardar el jugador: " + ex.getMessage());
+                }
+            }*/
+            AfegirEditarJugador.mostrarFormulari(null, persistencia);
+        });
+        
         JButton btnEditar = new JButton("Editar");
         btnEditar.setBounds(250, 470, 100, 30);
         btnEditar.setBackground(new Color(173, 216, 230)); // Blau cel
         btnEditar.setFocusPainted(false);
         frame.add(btnEditar);
+        
+        btnEditar.addActionListener(e -> {
+            int filaSeleccionada = taulaJugadors.getSelectedRow();
 
+            // Verificar si s'ha seleccionat alguna fila
+            if (filaSeleccionada != -1) {
+                Jugador jugadorSeleccionat = jugadorsFiltrats.get(filaSeleccionada);
+                AfegirEditarJugador.mostrarFormulari(jugadorSeleccionat, persistencia);
+            }
+            
+        });
+        
+        
         JButton btnEliminar = new JButton("Eliminar");
         btnEliminar.setBounds(400, 470, 100, 30);
         btnEliminar.setBackground(new Color(173, 216, 230)); // Blau cel
         btnEliminar.setFocusPainted(false);
         frame.add(btnEliminar);
+        
+        btnEliminar.addActionListener(e -> {
+            int filaSeleccionada = taulaJugadors.getSelectedRow();
+
+            if (filaSeleccionada != -1) {
+                Jugador jugadorSeleccionat = jugadorsFiltrats.get(filaSeleccionada); // Trabaja con la lista filtrada
+                int confirmacion = JOptionPane.showConfirmDialog(null, "¿Seguro que vols eliminar el jugador: "+ jugadorSeleccionat.getNom()+ "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+
+                if (confirmacion == JOptionPane.YES_OPTION) {
+                    try {
+                        persistencia.eliminarJugador(jugadorSeleccionat.getId());
+                        persistencia.confirmarCanvis();
+                        //System.out.println(jugadorSeleccionat);
+                        buscarPerNom(""); // Refresca la tabla con todos los jugadores
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(null, "Error al eliminar el jugador: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
 
     }
 
     private void carregarJugadors() {
         try {
-            List<Jugador> jugadors = persistencia.obtenirTotsJugadors(); // Obtenim els jugadors de la BD
+            jugadors = persistencia.obtenirTotsJugadors(); // Obtenim els jugadors de la BD
+            jugadorsFiltrats = new ArrayList<>(jugadors); // Inicialitzar jugadorsFiltrats amb tots els jugadors
             modelTaulaJugadors.setRowCount(0); // Esborrem les dades antigues
 
             for (Jugador jugador : jugadors) {
@@ -152,6 +208,7 @@ public class GestioJugadors {
             JOptionPane.showMessageDialog(null, "Error en obtenir els jugadors: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
     
     private void filtreCategoria(JFrame frame) {
         // ComboBox per filtrar per categoria
@@ -177,13 +234,14 @@ public class GestioJugadors {
 
     private void filtrarPerCategoria(String categoria) {
         try {
-            List<Jugador> jugadors = persistencia.obtenirTotsJugadors(); // Obtenim tots els jugadors
+            jugadorsFiltrats = new ArrayList<>(); // Reiniciar la lista filtrada
             modelTaulaJugadors.setRowCount(0); // Netejar taula
 
             for (Jugador jugador : jugadors) {
                 String categoriaJugador = calcularCategoria(calcularEdat(jugador.getDataNaix()));
 
                 if (categoriaJugador.equals(categoria)) {
+                    jugadorsFiltrats.add(jugador); // Actualizar la lista filtrada
                     modelTaulaJugadors.addRow(new Object[]{
                         jugador.getIdLegal(),
                         jugador.getNom(),
@@ -193,10 +251,11 @@ public class GestioJugadors {
                     });
                 }
             }
-        } catch (GestorBDEsportsException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Error en obtenir els jugadors: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
 
     private int calcularEdat(java.util.Date dataNaix) {
         java.util.Calendar avui = java.util.Calendar.getInstance();
@@ -244,22 +303,23 @@ public class GestioJugadors {
     
     private void buscarPerNom(String nom) {
         try {
-            List<Jugador> jugadors = persistencia.buscarNomJugador(nom); // Utilitzar el mètode de la capa de persistència
-            modelTaulaJugadors.setRowCount(0); // Netejar la taula abans de mostrar els resultats
+            jugadorsFiltrats = persistencia.buscarNomJugador(nom); // Actualiza la lista filtrada
+            modelTaulaJugadors.setRowCount(0); // Limpia la tabla
 
-            for (Jugador jugador : jugadors) {
+            for (Jugador jugador : jugadorsFiltrats) {
                 modelTaulaJugadors.addRow(new Object[]{
                     jugador.getIdLegal(),
                     jugador.getNom(),
                     jugador.getCognoms(),
                     calcularEdat(jugador.getDataNaix()),
-                    calcularCategoria(calcularEdat(jugador.getDataNaix())) // Categoria calculada
+                    calcularCategoria(calcularEdat(jugador.getDataNaix()))
                 });
             }
-        } catch (GestorBDEsportsException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Error en buscar jugadors pel nom: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
 
     private void filtrePerNIF(JFrame frame) {
         // Afegir un camp de text per cercar pel NIF
@@ -280,16 +340,16 @@ public class GestioJugadors {
         // Listener per al botó Buscar NIF
         btnBuscarNIF.addActionListener(e -> {
             String nif = txtBuscarNIF.getText().trim();
-            buscarPerNIF(nif); // Cridar la funció buscarPerNIF
+            //buscarPerNIF(nif); // Cridar la funció buscarPerNIF
         });
     }
-    
+    /*
     private void buscarPerNIF(String nif) {
         try {
-            List<Jugador> jugadors = persistencia.buscarPerNIFJugador(nif); // Utilitzar el mètode de la capa de persistència
+            jugadorsFiltrats = persistencia.buscarPerNIFJugador(nif); // Utilitzar el mètode de la capa de persistència
             modelTaulaJugadors.setRowCount(0); // Netejar la taula abans de mostrar els resultats
 
-            for (Jugador jugador : jugadors) {
+            for (Jugador jugador : jugadorsFiltrats) {
                 modelTaulaJugadors.addRow(new Object[]{
                     jugador.getIdLegal(),
                     jugador.getNom(),
@@ -302,7 +362,7 @@ public class GestioJugadors {
             JOptionPane.showMessageDialog(null, "Error en buscar jugadors pel NIF: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
- 
+    */
     private void filtrePerDataNaix(JFrame frame) {
         // Afegir un camp de text per cercar per data de naixement
         JLabel lblBuscarDataNaix = new JLabel("DATA DE NAIXAMENT:");
@@ -342,10 +402,10 @@ public class GestioJugadors {
 
     private void buscarPerDataNaix(java.sql.Date dataNaix) {
         try {
-            List<Jugador> jugadors = persistencia.buscarPerDataNaixJugador(dataNaix); // Utilitzar el mètode de la capa de persistència
+            jugadorsFiltrats = persistencia.buscarPerDataNaixJugador(dataNaix); // Utilitzar el mètode de la capa de persistència
             modelTaulaJugadors.setRowCount(0); // Netejar la taula abans de mostrar els resultats
 
-            for (Jugador jugador : jugadors) {
+            for (Jugador jugador : jugadorsFiltrats) {
                 modelTaulaJugadors.addRow(new Object[] {
                     jugador.getIdLegal(),
                     jugador.getNom(),
@@ -397,6 +457,13 @@ public class GestioJugadors {
         }
     }
 
-
+    private static void infoError(Throwable aux) {
+        do {
+            if (aux.getMessage() != null) {
+                System.out.println("\t" + aux.getMessage());
+            }
+            aux = aux.getCause();
+        } while (aux != null);
+    }
 
 }
