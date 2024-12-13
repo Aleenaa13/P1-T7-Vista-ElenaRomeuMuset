@@ -12,6 +12,7 @@ public class GestioTemporades {
     private IPersistencia persistencia; // Per accedir a la interfície de persistència
     private DefaultTableModel modelTaulaTemporades;
     private JTextField txtAny; // Definida com a camp de classe
+    private List<Temporada> temporades;
 
     public GestioTemporades(IPersistencia persistencia) {
         this.persistencia = persistencia;
@@ -32,7 +33,7 @@ public class GestioTemporades {
         int numBotons = 6;
         int ampladaBoto = 900 / numBotons;
         int alturaBoto = 40;
-        String[] nomsBotons = {"Inici", "Gestió d'Equips", "Gestió de Jugadors", "Gestió de Temporades", "Informe d'Equips", "Tancar Sessió"};
+        String[] nomsBotons = {"INICI", "EQUIPS", "JUGADORS", "TEMPORADES", "INFORMES", "TANCAR SESSIÓ"};
         JButton[] botonsMenu = new JButton[numBotons];
 
         for (int i = 0; i < nomsBotons.length; i++) {
@@ -48,8 +49,7 @@ public class GestioTemporades {
 
         // Vincular accions als botons del menú
         botonsMenu[5].addActionListener(e -> {
-            frame.dispose();
-            new TancarSessio();
+            TancarSessio.executar(frame, persistencia);
         });
         botonsMenu[0].addActionListener(e -> {
             frame.dispose();
@@ -61,7 +61,7 @@ public class GestioTemporades {
         });
         botonsMenu[2].addActionListener(e -> {
             frame.dispose();
-            new GestioJugadors(persistencia);
+            new GestioJugador(persistencia);
         });
 
         // Títol centrat
@@ -72,7 +72,7 @@ public class GestioTemporades {
         frame.add(titol);
 
         // Configurar la taula
-        modelTaulaTemporades = new DefaultTableModel(new String[]{"Any"}, 0) {
+        modelTaulaTemporades = new DefaultTableModel(new String[]{"TEMPORADES"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false; // Cap cel·la és editable
@@ -82,36 +82,43 @@ public class GestioTemporades {
         JTable taulaTemporades = new JTable(modelTaulaTemporades);
         taulaTemporades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(taulaTemporades);
-        scrollPane.setBounds(50, 150, 300, 300);
+        scrollPane.setBounds(70, 150, 200, 300);
         frame.add(scrollPane);
 
         // Botons
         JButton btnAfegir = new JButton("Afegir");
-        btnAfegir.setBounds(600, 300, 100, 30);
+        btnAfegir.setBounds(600, 340, 100, 30);
         btnAfegir.setBackground(new Color(70, 130, 180));
         frame.add(btnAfegir);
 
         JButton btnEliminar = new JButton("Eliminar");
-        btnEliminar.setBounds(50, 470, 100, 30);
+        btnEliminar.setBounds(70, 490, 100, 30);
         btnEliminar.setBackground(new Color(173, 216, 230));
         frame.add(btnEliminar);
 
         JLabel lblAny = new JLabel("Any:");
-        lblAny.setBounds(540, 240, 40, 30);
+        lblAny.setBounds(540, 270, 40, 30);
         frame.add(lblAny);
 
         txtAny = new JTextField(); // Inicialitzar el camp com a atribut
-        txtAny.setBounds(600, 240, 100, 30);
+        txtAny.setBounds(600, 270, 150, 30);
         frame.add(txtAny);
-
-        // Carregar dades de la base de dades
-        carregarTemporades();
+        
+        JLabel lblTitolAfegir = new JLabel("AFEGIR TEMPORADES", SwingConstants.CENTER);
+        lblTitolAfegir.setBounds(525, 210, 250, 30);
+        lblTitolAfegir.setFont(new Font("SansSerif", Font.BOLD, 16));
+        lblTitolAfegir.setForeground(new Color(70, 130, 180));
+        frame.add(lblTitolAfegir);
 
         JPanel recuadre = new JPanel();
         recuadre.setBounds(500, 200, 300, 200);
-        recuadre.setBackground(new Color(173, 216, 230));
-        recuadre.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2)); // Bordes del recuadre en negre
+        recuadre.setBackground(new Color(220, 240, 250));
+        recuadre.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 2)); // Bordes del recuadre en negre
         frame.add(recuadre);
+        
+        // Carregar dades de la base de dades
+        carregarTemporades();
+        
 
         // Mostrar el frame
         frame.setVisible(true);
@@ -123,7 +130,7 @@ public class GestioTemporades {
 
     private void carregarTemporades() {
         try {
-            List<Temporada> temporades = persistencia.obtenirTotesTemporades();
+            temporades = persistencia.obtenirTotesTemporades();
             modelTaulaTemporades.setRowCount(0);
             for (Temporada temporada : temporades) {
                 modelTaulaTemporades.addRow(new Object[]{temporada.getAny()});

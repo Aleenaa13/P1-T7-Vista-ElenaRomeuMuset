@@ -3,6 +3,7 @@ package p1.t7.vista.romeumusetelena;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import org.esportsapp.persistencia.IPersistencia;
@@ -15,6 +16,8 @@ public class GestioEquips {
     private IPersistencia persistencia;
     private DefaultTableModel modelTaulaEquips;
     private JTable taulaEquips;
+    private List<Equip> equips ;
+    private List<Equip> equipsFiltrats;
 
     public GestioEquips(IPersistencia persistencia) {
         this.persistencia = persistencia;
@@ -59,7 +62,7 @@ public class GestioEquips {
         int numBotons = 6;
         int ampladaBoto = 900 / numBotons;
         int alturaBoto = 40;
-        String[] nomsBotons = {"Inici", "Gestió d'Equips", "Gestió de Jugadors", "Gestió de Temporades", "Informe d'Equips", "Tancar Sessió"};
+        String[] nomsBotons = {"INICI", "EQUIPS", "JUGADORS", "TEMPORADES", "EQUIPS", "TANCAR SESSIÓ"};
         JButton[] botonsMenu = new JButton[numBotons];
 
         for (int i = 0; i < nomsBotons.length; i++) {
@@ -74,8 +77,7 @@ public class GestioEquips {
         }
 
         botonsMenu[5].addActionListener(e -> {
-            frame.dispose();
-            new TancarSessio();
+            TancarSessio.executar(frame, persistencia);
         });
 
         botonsMenu[0].addActionListener(e -> {
@@ -88,7 +90,7 @@ public class GestioEquips {
         });
         botonsMenu[2].addActionListener(e -> {
             frame.dispose();
-            new GestioJugadors(persistencia);
+            new GestioJugador(persistencia);
         });
         botonsMenu[3].addActionListener(e -> {
             frame.dispose();
@@ -119,7 +121,8 @@ public class GestioEquips {
 
     private void carregarEquips() {
         try {
-            List<Equip> equips = persistencia.obtenirTotsEquips();
+            equips = persistencia.obtenirTotsEquips();
+            equipsFiltrats = new ArrayList<>(equips);
             modelTaulaEquips.setRowCount(0);
 
             equips.sort(Comparator.comparingInt(Equip::getIdCategoria));
@@ -166,29 +169,38 @@ public class GestioEquips {
     }
 
     private void filtrarPerCategoria(String categoriaSeleccionada) {
-        try {
-            List<Equip> equips = persistencia.obtenirTotsEquips();
-            modelTaulaEquips.setRowCount(0);
+    try {
+        equipsFiltrats = new ArrayList<>(); // Reiniciar la llista filtrada
+        modelTaulaEquips.setRowCount(0); // Netejar taula
 
-            for (Equip equip : equips) {
-                String categoria = switch (equip.getIdCategoria()) {
-                    case 1 -> "Benjamí";
-                    case 2 -> "Aleví";
-                    case 3 -> "Infantil";
-                    case 4 -> "Cadet";
-                    case 5 -> "Junior";
-                    case 6 -> "Senior";
-                    default -> "Desconeguda";
-                };
+        equips = persistencia.obtenirTotsEquips();
 
-                if ("Totes".equals(categoriaSeleccionada) || categoria.equals(categoriaSeleccionada)) {
-                    modelTaulaEquips.addRow(new Object[]{equip.getNom(), equip.getTipus(), categoria, equip.getAnyTemporada()});
-                }
+        for (Equip equip : equips) {
+            String categoria = switch (equip.getIdCategoria()) {
+                case 1 -> "Benjamí";
+                case 2 -> "Aleví";
+                case 3 -> "Infantil";
+                case 4 -> "Cadet";
+                case 5 -> "Junior";
+                case 6 -> "Senior";
+                default -> "Desconeguda";
+            };
+
+            if ("Totes".equals(categoriaSeleccionada) || categoria.equals(categoriaSeleccionada)) {
+                equipsFiltrats.add(equip); // Afegir a la llista filtrada
+                modelTaulaEquips.addRow(new Object[]{
+                    equip.getNom(),
+                    equip.getTipus(),
+                    categoria,
+                    equip.getAnyTemporada()
+                });
             }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Error en filtrar els equips: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, "Error en filtrar els equips: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
+}
+
 
     private void configurarFiltreTemporada(JFrame frame) {
         JLabel etiquetaFiltreTemporada = new JLabel("Filtrar per temporada:");
@@ -218,12 +230,21 @@ public class GestioEquips {
     private void filtrarPerTemporada(String temporadaSeleccionada) {
         try {
             int anySeleccionat = Integer.parseInt(temporadaSeleccionada);
-            List<Equip> equips = persistencia.obtenirTotsEquips();
-            modelTaulaEquips.setRowCount(0);
+            equipsFiltrats = new ArrayList<>(); // Reiniciar la llista filtrada
+            modelTaulaEquips.setRowCount(0); // Netejar taula
+
+            // Obtenir tots els equips
+            equips = persistencia.obtenirTotsEquips();
 
             for (Equip equip : equips) {
                 if (equip.getAnyTemporada() == anySeleccionat) {
-                    modelTaulaEquips.addRow(new Object[]{equip.getNom(), equip.getTipus(), equip.getIdCategoria(), equip.getAnyTemporada()});
+                    equipsFiltrats.add(equip); // Afegir a la llista filtrada
+                    modelTaulaEquips.addRow(new Object[]{
+                        equip.getNom(),
+                        equip.getTipus(),
+                        equip.getIdCategoria(),
+                        equip.getAnyTemporada()
+                    });
                 }
             }
         } catch (NumberFormatException e) {
@@ -232,6 +253,7 @@ public class GestioEquips {
             JOptionPane.showMessageDialog(null, "Error en filtrar els equips: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
 
     private void configurarBotonsInferiors(JFrame frame) {
         JButton botoAfegirEquip = crearBotoAfegir(frame);
@@ -242,102 +264,71 @@ public class GestioEquips {
     private JButton crearBotoAfegir(JFrame frame) {
         JButton botoAfegirEquip = new JButton("Afegir");
         botoAfegirEquip.setBounds(50, 490, 100, 30);
-        botoAfegirEquip.setBackground(new Color(135, 206, 250));
+        botoAfegirEquip.setBackground(new Color(135, 206, 250));  // Blau cel
+        botoAfegirEquip.setFocusPainted(false);
         frame.add(botoAfegirEquip);
 
         botoAfegirEquip.addActionListener(e -> {
-            try {
-                JFrame finestraAfegir = new JFrame("Afegir Equip");
-                finestraAfegir.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                finestraAfegir.setSize(900, 600);
-                finestraAfegir.setLayout(new BorderLayout());
-                finestraAfegir.setResizable(false);
-                finestraAfegir.setLocationRelativeTo(null);
-
-                AfegirEditarEquip panellAfegir = new AfegirEditarEquip(persistencia, true, null);
-                finestraAfegir.add(panellAfegir, BorderLayout.CENTER);
-
-                finestraAfegir.setVisible(true);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            // Cridar a la classe que gestiona el formulari per afegir o editar un equip
+            AfegirEditarEquip.mostrarFormulari(null, persistencia);
         });
 
         return botoAfegirEquip;
     }
 
+
     private JButton crearBotoModificar(JFrame frame) {
         JButton botoModificarEquip = new JButton("Modificar");
         botoModificarEquip.setBounds(200, 490, 100, 30);
-        botoModificarEquip.setBackground(new Color(135, 206, 250));
+        botoModificarEquip.setBackground(new Color(135, 206, 250));  // Blau cel
+        botoModificarEquip.setFocusPainted(false);
         frame.add(botoModificarEquip);
 
         botoModificarEquip.addActionListener(e -> {
-            try {
-                // Obtenir la fila seleccionada de la taula
-                int filaSeleccionada = taulaEquips.getSelectedRow();
+            // Obtenir la fila seleccionada de la taula
+            int filaSeleccionada = taulaEquips.getSelectedRow();
 
-                // Verificar si s'ha seleccionat alguna fila
-                if (filaSeleccionada != -1) {
-                    String nomEquip = modelTaulaEquips.getValueAt(filaSeleccionada, 0).toString();
-                    // Mostra un missatge informatiu amb el nom de l'equip seleccionat
-                    //JOptionPane.showMessageDialog(frame, "Modificant equip: " + nomEquip);
-
-                    // Obtenir les dades de l'equip seleccionat
-                    int idEquip = (int) modelTaulaEquips.getValueAt(filaSeleccionada, 0);  // Assumint que l'ID de l'equip és la primera columna
-                    String tipusEquipString = modelTaulaEquips.getValueAt(filaSeleccionada, 1).toString();
-                    TipusEquip tipusEquip = TipusEquip.valueOf(tipusEquipString);  // Assumint que TipusEquip és un enum
-                    int anyTemporada = Integer.parseInt(modelTaulaEquips.getValueAt(filaSeleccionada, 2).toString());
-                    int idCategoria = Integer.parseInt(modelTaulaEquips.getValueAt(filaSeleccionada, 3).toString());
-
-                    // Crear l'objecte Equip amb les dades obtingudes
-                    Equip equipSeleccionat = new Equip(idEquip, nomEquip, tipusEquip, anyTemporada, idCategoria);
-
-                    // Crear la finestra per editar l'equip
-                    JFrame finestraModificar = new JFrame("Modificar Equip");
-                    finestraModificar.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                    finestraModificar.setSize(900, 600);
-                    finestraModificar.setLayout(new BorderLayout());
-                    finestraModificar.setResizable(false);
-                    finestraModificar.setLocationRelativeTo(null);
-
-                    // Crear el panell d'editar equip i passar-li l'equip seleccionat
-                    AfegirEditarEquip panellAfegirEditar = new AfegirEditarEquip(persistencia, true, equipSeleccionat);
-                    finestraModificar.add(panellAfegirEditar, BorderLayout.CENTER);
-
-                    // Fer visible la finestra
-                    finestraModificar.setVisible(true);
-                } else {
-                    JOptionPane.showMessageDialog(frame, "Selecciona un equip per modificar.", "Error", JOptionPane.WARNING_MESSAGE);
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();  // Mostrar error a la consola
+            // Verificar si s'ha seleccionat alguna fila
+            if (filaSeleccionada != -1) {
+                // Obtenir les dades de l'equip seleccionat
+                Equip equipSeleccionat = equips.get(filaSeleccionada);
+                // Cridar a la funció per modificar l'equip
+                AfegirEditarEquip.mostrarFormulari(equipSeleccionat, persistencia);
+            } else {
+                JOptionPane.showMessageDialog(frame, "Selecciona un equip per modificar.", "Error", JOptionPane.WARNING_MESSAGE);
             }
         });
 
         return botoModificarEquip;
     }
 
-
     private JButton crearBotoEliminar(JFrame frame) {
         JButton botoEliminarEquip = new JButton("Eliminar");
         botoEliminarEquip.setBounds(350, 490, 100, 30);
-        botoEliminarEquip.setBackground(new Color(135, 206, 250));
+        botoEliminarEquip.setBackground(new Color(135, 206, 250));  // Blau cel
+        botoEliminarEquip.setFocusPainted(false);
         frame.add(botoEliminarEquip);
 
         botoEliminarEquip.addActionListener(e -> {
+            // Obtenir la fila seleccionada de la taula
             int filaSeleccionada = taulaEquips.getSelectedRow();
+
+            // Verificar si s'ha seleccionat alguna fila
             if (filaSeleccionada != -1) {
-                String nomEquip = modelTaulaEquips.getValueAt(filaSeleccionada, 0).toString();
-                int idEquip = Integer.parseInt(modelTaulaEquips.getValueAt(filaSeleccionada, 3).toString()); // Suposant que el ID està a la columna 3
-                int resposta = JOptionPane.showConfirmDialog(frame, "Vols eliminar l'equip: " + nomEquip + "?", "Confirmar eliminació", JOptionPane.YES_NO_OPTION);
-                if (resposta == JOptionPane.YES_OPTION) {
+                // Obtenir l'equip seleccionat de la taula
+                Equip equipSeleccionat = equips.get(filaSeleccionada);
+                
+                // Confirmació per eliminar l'equip
+                int confirmacio = JOptionPane.showConfirmDialog(frame, "Vols eliminar l'equip: " + equipSeleccionat.getNom() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+
+                if (confirmacio == JOptionPane.YES_OPTION) {
                     try {
                         // Eliminar l'equip de la base de dades
-                        persistencia.eliminarEquip(idEquip);
-                        JOptionPane.showMessageDialog(frame, "Equip eliminat.");
-                        carregarEquips(); // Actualitzar la taula després d'eliminar
-                    } catch (GestorBDEsportsException ex) {
+                        persistencia.eliminarEquip(equipSeleccionat.getId());
+                        persistencia.confirmarCanvis();
+                        // Refrescar la taula d'equips
+                        carregarEquips();
+                    } catch (Exception ex) {
                         JOptionPane.showMessageDialog(frame, "Error al eliminar l'equip: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
@@ -348,6 +339,7 @@ public class GestioEquips {
 
         return botoEliminarEquip;
     }
+
 
 }
 

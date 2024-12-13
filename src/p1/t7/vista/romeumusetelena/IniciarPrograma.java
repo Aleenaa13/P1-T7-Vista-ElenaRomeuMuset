@@ -1,10 +1,26 @@
 package p1.t7.vista.romeumusetelena;
 
+
+import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import org.esportsapp.persistencia.IPersistencia;
 
 public class IniciarPrograma {
     public static void main(String[] args) {
+        
+        try {
+            UIManager.setLookAndFeel(new FlatLightLaf());
+        } catch (UnsupportedLookAndFeelException ex) {
+            System.out.println("Error al carregar THEME");
+        }
+        
         if (args.length == 0) {
             System.out.println("Cal passar el nom de la classe que dona la persistència com a primer argument");
             System.exit(0);

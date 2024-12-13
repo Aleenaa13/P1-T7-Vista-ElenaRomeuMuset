@@ -88,7 +88,7 @@ public class PantallaPrincipal {
 
     private void mostrarGestioJugadors(JFrame frame) {
         frame.setVisible(false);
-        new GestioJugadors(persistencia); // Passa la persistència a la nova pantalla
+        new GestioJugador(persistencia); // Passa la persistència a la nova pantalla
     }
 
     private void mostrarGestioTemporades(JFrame frame) {

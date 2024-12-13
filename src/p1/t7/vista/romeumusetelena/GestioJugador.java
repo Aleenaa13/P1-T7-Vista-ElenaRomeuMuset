@@ -5,15 +5,17 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.esportsapp.persistencia.IPersistencia;
+import p1.t6.model.romeumusetelena.Equip;
 import p1.t6.model.romeumusetelena.GestorBDEsportsException;
 import p1.t6.model.romeumusetelena.Jugador;
+import p1.t6.model.romeumusetelena.Temporada;
+import p1.t6.model.romeumusetelena.TipusEquip;
 
-public class GestioJugadors {
+public class GestioJugador {
     private IPersistencia persistencia; // Per accedir a la interfície de persistència
     private DefaultTableModel modelTaulaJugadors;
     private  JTable taulaJugadors;
@@ -21,7 +23,7 @@ public class GestioJugadors {
     private List<Jugador> jugadorsFiltrats; // Lista sincronizada con la tabla
     
 
-    public GestioJugadors(IPersistencia persistencia) {
+    public GestioJugador(IPersistencia persistencia) {
         this.persistencia = persistencia; // Inicialitzar la interfície de persistència
 
         // Crear el frame
@@ -40,7 +42,7 @@ public class GestioJugadors {
         int numBotons = 6;
         int ampladaBoto = 900 / numBotons;
         int alturaBoto = 40;
-        String[] nomsBotons = {"Inici", "Gestió d'Equips", "Gestió de Jugadors", "Gestió de Temporades", "Informe d'Equips", "Tancar Sessió"};
+        String[] nomsBotons = {"INICI", "EQUIPS", "JUGADORS", "TEMPORADES", "INFORMES", "TANCAR SESSIÓ"};
         JButton[] botonsMenu = new JButton[numBotons];
 
         for (int i = 0; i < nomsBotons.length; i++) {
@@ -56,8 +58,7 @@ public class GestioJugadors {
 
         // Afegir acció als botons del menú
         botonsMenu[5].addActionListener(e -> {
-            frame.dispose();
-            new TancarSessio();
+            TancarSessio.executar(frame, persistencia);
         });
         botonsMenu[0].addActionListener(e -> {
             frame.dispose();
@@ -69,7 +70,7 @@ public class GestioJugadors {
         });
         botonsMenu[2].addActionListener(e -> {
             frame.dispose();
-            new GestioJugadors(persistencia);
+            new GestioJugador(persistencia);
         });
         botonsMenu[3].addActionListener(e -> {
             frame.dispose();
@@ -89,8 +90,8 @@ public class GestioJugadors {
             public boolean isCellEditable(int row, int column) {
                 return false; // Cap cel·la és editable
             }
-        };
-
+       };
+ 
         taulaJugadors = new JTable(modelTaulaJugadors);
         taulaJugadors.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Només una fila seleccionable
         JScrollPane scrollPane = new JScrollPane(taulaJugadors);
@@ -128,18 +129,7 @@ public class GestioJugadors {
         frame.add(btnAfegir);
         
         btnAfegir.addActionListener(e -> {
-            // Obrir el formulari per afegir un jugador
-            /*Jugador nouJugador = AfegirEditarJugador.mostrarFormulari(null);
-            if (nouJugador != null) {
-                try {
-                    // Guardar el jugador a la persistència
-                    persistencia.afegirJugador(nouJugador); // Aquesta funció guardarà el jugador a la base de dades
-                    persistencia.confirmarCanvis();
-                    JOptionPane.showMessageDialog(frame, "Jugador afegit correctament!");
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(frame, "Error al guardar el jugador: " + ex.getMessage());
-                }
-            }*/
+            
             AfegirEditarJugador.mostrarFormulari(null, persistencia);
         });
         
