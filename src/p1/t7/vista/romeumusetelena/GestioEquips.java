@@ -18,6 +18,8 @@ public class GestioEquips {
     private JTable taulaEquips;
     private List<Equip> equips ;
     private List<Equip> equipsFiltrats;
+    private JComboBox<String> comboTemporada;
+    private JComboBox<String> comboCategoria;
 
     public GestioEquips(IPersistencia persistencia) {
         this.persistencia = persistencia;
@@ -62,7 +64,7 @@ public class GestioEquips {
         int numBotons = 6;
         int ampladaBoto = 900 / numBotons;
         int alturaBoto = 40;
-        String[] nomsBotons = {"INICI", "EQUIPS", "JUGADORS", "TEMPORADES", "EQUIPS", "TANCAR SESSIÓ"};
+        String[] nomsBotons = {"INICI", "EQUIPS", "JUGADORS", "TEMPORADES", "INFORMES", "TANCAR SESSIÓ"};
         JButton[] botonsMenu = new JButton[numBotons];
 
         for (int i = 0; i < nomsBotons.length; i++) {
@@ -122,12 +124,21 @@ public class GestioEquips {
     private void carregarEquips() {
         try {
             equips = persistencia.obtenirTotsEquips();
-            equipsFiltrats = new ArrayList<>(equips);
+            equipsFiltrats = new ArrayList<>();
             modelTaulaEquips.setRowCount(0);
 
-            equips.sort(Comparator.comparingInt(Equip::getIdCategoria));
-
+            // Filtrar inicialmente solo los equipos de 2024
             for (Equip equip : equips) {
+                if (equip.getAnyTemporada() == 2024) {  // Mostrar solo equipos de 2024 inicialmente
+                    equipsFiltrats.add(equip);
+                }
+            }
+
+            // Ordenar los equipos por categoría
+            equipsFiltrats.sort(Comparator.comparingInt(Equip::getIdCategoria));
+
+            // Mostrar los equipos ordenados
+            for (Equip equip : equipsFiltrats) {
                 String tipus = switch (equip.getTipus()) {
                     case H -> "Homes";
                     case D -> "Dones";
@@ -145,10 +156,16 @@ public class GestioEquips {
                     default -> "Desconeguda";
                 };
 
-                modelTaulaEquips.addRow(new Object[]{equip.getNom(), tipus, categoria, equip.getAnyTemporada()});
+                modelTaulaEquips.addRow(new Object[]{
+                    equip.getNom(),
+                    tipus,
+                    categoria,
+                    equip.getAnyTemporada()
+                });
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Error en obtenir els equips: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Error en obtenir els equips: " + e.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -158,56 +175,25 @@ public class GestioEquips {
         frame.add(etiquetaFiltreCategoria);
 
         String[] categories = {"Totes", "Benjamí", "Aleví", "Infantil", "Cadet", "Junior", "Senior"};
-        JComboBox<String> comboCategoria = new JComboBox<>(categories);
+        comboCategoria = new JComboBox<>(categories);
         comboCategoria.setBounds(700, 470, 150, 30);
         frame.add(comboCategoria);
 
         comboCategoria.addActionListener(e -> {
-            String categoriaSeleccionada = (String) comboCategoria.getSelectedItem();
-            filtrarPerCategoria(categoriaSeleccionada);
+            if (comboTemporada != null) {
+                String categoriaSeleccionada = (String) comboCategoria.getSelectedItem();
+                String temporadaSeleccionada = (String) comboTemporada.getSelectedItem();
+                aplicarFiltres(categoriaSeleccionada, temporadaSeleccionada);
+            }
         });
     }
-
-    private void filtrarPerCategoria(String categoriaSeleccionada) {
-    try {
-        equipsFiltrats = new ArrayList<>(); // Reiniciar la llista filtrada
-        modelTaulaEquips.setRowCount(0); // Netejar taula
-
-        equips = persistencia.obtenirTotsEquips();
-
-        for (Equip equip : equips) {
-            String categoria = switch (equip.getIdCategoria()) {
-                case 1 -> "Benjamí";
-                case 2 -> "Aleví";
-                case 3 -> "Infantil";
-                case 4 -> "Cadet";
-                case 5 -> "Junior";
-                case 6 -> "Senior";
-                default -> "Desconeguda";
-            };
-
-            if ("Totes".equals(categoriaSeleccionada) || categoria.equals(categoriaSeleccionada)) {
-                equipsFiltrats.add(equip); // Afegir a la llista filtrada
-                modelTaulaEquips.addRow(new Object[]{
-                    equip.getNom(),
-                    equip.getTipus(),
-                    categoria,
-                    equip.getAnyTemporada()
-                });
-            }
-        }
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(null, "Error en filtrar els equips: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-    }
-}
-
 
     private void configurarFiltreTemporada(JFrame frame) {
         JLabel etiquetaFiltreTemporada = new JLabel("Filtrar per temporada:");
         etiquetaFiltreTemporada.setBounds(550, 510, 150, 30);
         frame.add(etiquetaFiltreTemporada);
 
-        JComboBox<String> comboTemporada = new JComboBox<>();
+        comboTemporada = new JComboBox<>();
         comboTemporada.setBounds(700, 510, 150, 30);
         frame.add(comboTemporada);
 
@@ -218,42 +204,94 @@ public class GestioEquips {
             }
             comboTemporada.setSelectedItem("2024");
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Error en carregar temporades: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Error en carregar temporades: " + e.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
         }
 
         comboTemporada.addActionListener(e -> {
-            String temporadaSeleccionada = (String) comboTemporada.getSelectedItem();
-            filtrarPerTemporada(temporadaSeleccionada);
+            if (comboCategoria != null) {
+                String categoriaSeleccionada = (String) comboCategoria.getSelectedItem();
+                String temporadaSeleccionada = (String) comboTemporada.getSelectedItem();
+                aplicarFiltres(categoriaSeleccionada, temporadaSeleccionada);
+            }
         });
     }
 
-    private void filtrarPerTemporada(String temporadaSeleccionada) {
+    private void aplicarFiltres(String categoriaSeleccionada, String temporadaSeleccionada) {
         try {
             int anySeleccionat = Integer.parseInt(temporadaSeleccionada);
-            equipsFiltrats = new ArrayList<>(); // Reiniciar la llista filtrada
-            modelTaulaEquips.setRowCount(0); // Netejar taula
+            equipsFiltrats = new ArrayList<>();
+            modelTaulaEquips.setRowCount(0);
+            
+            boolean equipsTrobats = false;
 
-            // Obtenir tots els equips
-            equips = persistencia.obtenirTotsEquips();
-
+            // Primer recopilem tots els equips que compleixen els filtres
             for (Equip equip : equips) {
                 if (equip.getAnyTemporada() == anySeleccionat) {
-                    equipsFiltrats.add(equip); // Afegir a la llista filtrada
-                    modelTaulaEquips.addRow(new Object[]{
-                        equip.getNom(),
-                        equip.getTipus(),
-                        equip.getIdCategoria(),
-                        equip.getAnyTemporada()
-                    });
+                    String categoria = switch (equip.getIdCategoria()) {
+                        case 1 -> "Benjamí";
+                        case 2 -> "Aleví";
+                        case 3 -> "Infantil";
+                        case 4 -> "Cadet";
+                        case 5 -> "Junior";
+                        case 6 -> "Senior";
+                        default -> "Desconeguda";
+                    };
+
+                    if ("Totes".equals(categoriaSeleccionada) || categoria.equals(categoriaSeleccionada)) {
+                        equipsFiltrats.add(equip);
+                        equipsTrobats = true;
+                    }
                 }
             }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "Selecciona una temporada vàlida.", "Error", JOptionPane.WARNING_MESSAGE);
+
+            // Ordenem els equips per categoria
+            equipsFiltrats.sort(Comparator.comparingInt(Equip::getIdCategoria));
+
+            // Mostrem els equips ordenats
+            for (Equip equip : equipsFiltrats) {
+                String categoria = switch (equip.getIdCategoria()) {
+                    case 1 -> "Benjamí";
+                    case 2 -> "Aleví";
+                    case 3 -> "Infantil";
+                    case 4 -> "Cadet";
+                    case 5 -> "Junior";
+                    case 6 -> "Senior";
+                    default -> "Desconeguda";
+                };
+
+                String tipus = switch (equip.getTipus()) {
+                    case H -> "Homes";
+                    case D -> "Dones";
+                    case M -> "Mixt";
+                    default -> "Desconegut";
+                };
+
+                modelTaulaEquips.addRow(new Object[]{
+                    equip.getNom(),
+                    tipus,
+                    categoria,
+                    equip.getAnyTemporada()
+                });
+            }
+
+            // Si no s'han trobat equips per la categoria seleccionada
+            if (!equipsTrobats && !"Totes".equals(categoriaSeleccionada)) {
+                modelTaulaEquips.addRow(new Object[]{
+                    "Categoria sense equips",
+                    "-",
+                    categoriaSeleccionada,
+                    temporadaSeleccionada
+                });
+                taulaEquips.setEnabled(false);
+            } else {
+                taulaEquips.setEnabled(true);
+            }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Error en filtrar els equips: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Error en aplicar els filtres: " + e.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
 
     private void configurarBotonsInferiors(JFrame frame) {
         JButton botoAfegirEquip = crearBotoAfegir(frame);
@@ -290,8 +328,8 @@ public class GestioEquips {
 
             // Verificar si s'ha seleccionat alguna fila
             if (filaSeleccionada != -1) {
-                // Obtenir les dades de l'equip seleccionat
-                Equip equipSeleccionat = equips.get(filaSeleccionada);
+                // Obtenir les dades de l'equip seleccionat de la llista filtrada
+                Equip equipSeleccionat = equipsFiltrats.get(filaSeleccionada);
                 // Cridar a la funció per modificar l'equip
                 AfegirEditarEquip.mostrarFormulari(equipSeleccionat, persistencia);
             } else {
@@ -315,11 +353,14 @@ public class GestioEquips {
 
             // Verificar si s'ha seleccionat alguna fila
             if (filaSeleccionada != -1) {
-                // Obtenir l'equip seleccionat de la taula
-                Equip equipSeleccionat = equips.get(filaSeleccionada);
+                // Obtenir l'equip seleccionat de la llista filtrada
+                Equip equipSeleccionat = equipsFiltrats.get(filaSeleccionada);
                 
                 // Confirmació per eliminar l'equip
-                int confirmacio = JOptionPane.showConfirmDialog(frame, "Vols eliminar l'equip: " + equipSeleccionat.getNom() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+                int confirmacio = JOptionPane.showConfirmDialog(frame, 
+                    "Vols eliminar l'equip: " + equipSeleccionat.getNom() + "?", 
+                    "Confirmar", 
+                    JOptionPane.YES_NO_OPTION);
 
                 if (confirmacio == JOptionPane.YES_OPTION) {
                     try {
@@ -328,12 +369,24 @@ public class GestioEquips {
                         persistencia.confirmarCanvis();
                         // Refrescar la taula d'equips
                         carregarEquips();
+                        
+                        // Reapliquem els filtres després de carregar
+                        String categoriaSeleccionada = (String) comboCategoria.getSelectedItem();
+                        String temporadaSeleccionada = (String) comboTemporada.getSelectedItem();
+                        aplicarFiltres(categoriaSeleccionada, temporadaSeleccionada);
+                        
                     } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(frame, "Error al eliminar l'equip: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(frame, 
+                            "Error al eliminar l'equip: " + ex.getMessage(), 
+                            "Error", 
+                            JOptionPane.ERROR_MESSAGE);
                     }
                 }
             } else {
-                JOptionPane.showMessageDialog(frame, "Selecciona un equip per eliminar.", "Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(frame, 
+                    "Selecciona un equip per eliminar.", 
+                    "Error", 
+                    JOptionPane.WARNING_MESSAGE);
             }
         });
 

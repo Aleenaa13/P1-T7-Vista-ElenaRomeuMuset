@@ -58,12 +58,15 @@ public class AfegirEditarEquip {
         frame.add(titol);
 
         // Labels i camps de text
-        int xLabelEsquerra = 30, xLabelDreta = 500;  // Separació entre les dues columnes
-        int yLabel = 130, ampleLabel = 150, altLabel = 30;
-        int ampleCamp = 200, altCamp = 30;
-        int separacio = 60;
+        int xLabelEsquerra = 30;
+        int yLabel = 120;  // Empezamos un poco más arriba
+        int ampleLabel = 150;
+        int altLabel = 30;
+        int ampleCamp = 200;
+        int altCamp = 30;
+        int separacio = 50;  // Aumentamos la separación entre elementos
 
-        // Primer grup de camps a l'esquerra
+        // Nom
         JLabel labelNom = new JLabel("Nom:");
         labelNom.setBounds(xLabelEsquerra, yLabel, ampleLabel, altLabel);
         frame.add(labelNom);
@@ -71,18 +74,18 @@ public class AfegirEditarEquip {
         campNom.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel, ampleCamp, altCamp);
         frame.add(campNom);
 
-        // Afegir l'etiqueta "Tipus d'Equip"
+        // Tipus Equip
         JLabel labelTipusEquip = new JLabel("Tipus equip:");
-        labelTipusEquip.setBounds(xLabelEsquerra, yLabel + 2 * separacio, ampleLabel, altLabel);
+        labelTipusEquip.setBounds(xLabelEsquerra, yLabel + separacio, ampleLabel, altLabel);
         frame.add(labelTipusEquip);
 
-        // Crear els botons d'opció per al tipus d'equip
-        JRadioButton radioH = new JRadioButton("Home", equip != null && equip.getTipus() == TipusEquip.H);
-        radioH.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 2 * separacio, ampleCamp / 3, altCamp);
-        JRadioButton radioD = new JRadioButton("Dona", equip != null && equip.getTipus() == TipusEquip.D);
-        radioD.setBounds(xLabelEsquerra + ampleLabel + 10 + ampleCamp / 3, yLabel + 2 * separacio, ampleCamp / 3, altCamp);
+        // Radio buttons con menos espacio entre ellos
+        JRadioButton radioH = new JRadioButton("Masculí", equip != null && equip.getTipus() == TipusEquip.H);
+        radioH.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + separacio, ampleCamp/3, altCamp);
+        JRadioButton radioD = new JRadioButton("Femení", equip != null && equip.getTipus() == TipusEquip.D);
+        radioD.setBounds(xLabelEsquerra + ampleLabel + 10 + ampleCamp/3, yLabel + separacio, ampleCamp/3, altCamp);
         JRadioButton radioM = new JRadioButton("Mixt", equip != null && equip.getTipus() == TipusEquip.M);
-        radioM.setBounds(xLabelEsquerra + ampleLabel + 10 + 2 * ampleCamp / 3, yLabel + 2 * separacio, ampleCamp / 3, altCamp);
+        radioM.setBounds(xLabelEsquerra + ampleLabel + 10 + 2*ampleCamp/3, yLabel + separacio, ampleCamp/3, altCamp);
 
         // Agrupar els botons d'opció per garantir que només un es pugui seleccionar a la vegada
         ButtonGroup grupTipusEquip = new ButtonGroup();
@@ -95,11 +98,28 @@ public class AfegirEditarEquip {
         frame.add(radioD);
         frame.add(radioM);
 
-        // Crear el JComboBox per la categoria
+        // Declarar los ComboBox
         String[] categories = {"Benjamí", "Aleví", "Infantil", "Cadet", "Junior", "Senior"};
         JComboBox<String> comboCategoria = new JComboBox<>(categories);
-        comboCategoria.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 4 * separacio, ampleCamp, altCamp);
-        frame.add(comboCategoria);
+        JComboBox<String> comboTemporada = new JComboBox<>();
+
+        // Añadir label para Categoria
+        JLabel labelCategoria = new JLabel("Categoria:");
+        labelCategoria.setBounds(xLabelEsquerra, yLabel + 2*separacio, ampleLabel, altLabel);
+        frame.add(labelCategoria);
+
+        // Ajustar posición del ComboBox categoria
+        comboCategoria.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 2*separacio, ampleCamp, altCamp);
+        frame.add(comboCategoria);  // Añadir el combobox al frame
+
+        // Añadir label para Temporada
+        JLabel labelTemporada = new JLabel("Temporada:");
+        labelTemporada.setBounds(xLabelEsquerra, yLabel + 3*separacio, ampleLabel, altLabel);
+        frame.add(labelTemporada);
+
+        // Ajustar posición del ComboBox temporada
+        comboTemporada.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 3*separacio, ampleCamp, altCamp);
+        frame.add(comboTemporada);  // Añadir el combobox al frame
 
         // Establir la categoria per defecte si no s'ha passat un equip
         if (equip != null) {
@@ -124,18 +144,13 @@ public class AfegirEditarEquip {
         });
 
 
-        // Crear el JComboBox per la temporada
-        JComboBox<String> comboTemporada = new JComboBox<>();
-        comboTemporada.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 5 * separacio, ampleCamp, altCamp);
-        frame.add(comboTemporada);
-
         try {
             // Obtenir totes les temporades des de la base de dades
-            List<Temporada> temporades = persistencia.obtenirTotesTemporades();  // Mètode que recupera totes les temporades de la base de dades
+            List<Temporada> temporades = persistencia.obtenirTotesTemporades();
 
-            // Afegir totes les temporades al combo (només el valor que vols mostrar, potser l'any)
+            // Afegir totes les temporades al combo
             for (Temporada temporada : temporades) {
-                comboTemporada.addItem(String.valueOf(temporada.getAny()));  // Suposant que Temporada té un mètode getAny() per obtenir l'any
+                comboTemporada.addItem(String.valueOf(temporada.getAny()));
             }
 
             // Establir la temporada actual si es passa un equip
@@ -156,13 +171,13 @@ public class AfegirEditarEquip {
         
         // Botons Acció
         JButton botoGuardar = new JButton("Guardar");
-        botoGuardar.setBounds(50, 500, 100, 40);
+        botoGuardar.setBounds(50, 450, 100, 40);  // Subimos los botones
         botoGuardar.setBackground(new Color(173, 216, 230)); // Blau cel
         botoGuardar.setFocusPainted(false);
         frame.add(botoGuardar);
 
         JButton botoCancelar = new JButton("Cancelar");
-        botoCancelar.setBounds(200, 500, 100, 40);
+        botoCancelar.setBounds(200, 450, 100, 40);
         botoCancelar.setBackground(new Color(173, 216, 230)); // Blau cel
         botoCancelar.setFocusPainted(false);
         frame.add(botoCancelar);
@@ -170,12 +185,22 @@ public class AfegirEditarEquip {
         // Mostrar el frame
         frame.setVisible(true);
 
+        JLabel errorNom = new JLabel("Exemple: Equip dels tigres");
+        errorNom.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 22, ampleCamp, altLabel);
+        errorNom.setForeground(Color.RED);
+        errorNom.setVisible(false); // Inicialment ocult
+        frame.add(errorNom);
         
         // Lògica del botó Guardar
         botoGuardar.addActionListener(e -> {
             try {
                 // Obtenir dades del formulari
                 String nom = campNom.getText();
+                if (nom.matches(".*\\d.*")) { // Comprovem si el nom té números
+                    errorNom.setVisible(true);
+                } else {
+                    errorNom.setVisible(false);
+                }
 
                 // Obtenir el tipus d'equip seleccionat
                 TipusEquip tipus = radioH.isSelected() ? TipusEquip.H : (radioD.isSelected() ? TipusEquip.D : TipusEquip.M);

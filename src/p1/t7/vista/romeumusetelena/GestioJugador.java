@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.esportsapp.persistencia.IPersistencia;
 import p1.t6.model.romeumusetelena.Equip;
 import p1.t6.model.romeumusetelena.GestorBDEsportsException;
@@ -21,6 +22,11 @@ public class GestioJugador {
     private  JTable taulaJugadors;
     private List<Jugador> jugadors; // Lista de jugadores cargada de la base de datos
     private List<Jugador> jugadorsFiltrats; // Lista sincronizada con la tabla
+    private JTextField txtBuscarNom;
+    private JTextField txtBuscarNIF;
+    private JTextField txtBuscarDataNaix;
+    private JComboBox<String> comboCategoria;
+    private JCheckBox chkOrdenarCognom;
     
 
     public GestioJugador(IPersistencia persistencia) {
@@ -207,18 +213,25 @@ public class GestioJugador {
         frame.add(lblFiltreCategoria);
 
         String[] categories = {"Totes", "Benjamí", "Aleví", "Infantil", "Cadet", "Juvenil", "Sènior"};
-        JComboBox<String> comboCategoria = new JComboBox<>(categories);
+        comboCategoria = new JComboBox<>(categories); // Inicializar la variable de clase
         comboCategoria.setBounds(750, 470, 100, 30);
         frame.add(comboCategoria);
 
-        // Listener pel JComboBox
         comboCategoria.addActionListener(e -> {
-            String categoriaSeleccionada = (String) comboCategoria.getSelectedItem();
-            if ("Totes".equals(categoriaSeleccionada)) {
-                carregarJugadors(); // Tornar a carregar tots els jugadors
-            } else {
-                filtrarPerCategoria(categoriaSeleccionada); // Aplicar filtre
+            String nom = txtBuscarNom.getText().trim();
+            String nif = txtBuscarNIF.getText().trim();
+            Date dataNaix = null;
+            try {
+                if (!txtBuscarDataNaix.getText().trim().isEmpty()) {
+                    SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+                    dataNaix = format.parse(txtBuscarDataNaix.getText().trim());
+                }
+            } catch (Exception ex) {
+                // Mantener dataNaix como null si hay error
             }
+            String categoria = (String) comboCategoria.getSelectedItem();
+            boolean ordenarPerCognom = chkOrdenarCognom.isSelected();
+            aplicarFiltrosCombinados(nom, nif, dataNaix, categoria, ordenarPerCognom);
         });
     }
 
@@ -274,7 +287,7 @@ public class GestioJugador {
         lblBuscarNom.setBounds(50, 110, 100, 30);
         frame.add(lblBuscarNom);
 
-        JTextField txtBuscarNom = new JTextField();
+        txtBuscarNom = new JTextField(); // Inicializar la variable de clase
         txtBuscarNom.setBounds(100, 110, 100, 30);
         frame.add(txtBuscarNom);
 
@@ -287,7 +300,19 @@ public class GestioJugador {
         // Listener per al botó Buscar
         btnBuscar.addActionListener(e -> {
             String nom = txtBuscarNom.getText().trim();
-            buscarPerNom(nom); // Cridar la funció buscarPerNom
+            String nif = txtBuscarNIF.getText().trim();
+            Date dataNaix = null;
+            try {
+                if (!txtBuscarDataNaix.getText().trim().isEmpty()) {
+                    SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+                    dataNaix = format.parse(txtBuscarDataNaix.getText().trim());
+                }
+            } catch (Exception ex) {
+                // Mantener dataNaix como null si hay error
+            }
+            String categoria = (String) comboCategoria.getSelectedItem();
+            boolean ordenarPerCognom = chkOrdenarCognom.isSelected();
+            aplicarFiltrosCombinados(nom, nif, dataNaix, categoria, ordenarPerCognom);
         });
     }
     
@@ -317,7 +342,7 @@ public class GestioJugador {
         lblBuscarNIF.setBounds(270, 110, 50, 30);
         frame.add(lblBuscarNIF);
 
-        JTextField txtBuscarNIF = new JTextField();
+        txtBuscarNIF = new JTextField(); // Inicializar la variable de clase
         txtBuscarNIF.setBounds(310, 110, 100, 30);
         frame.add(txtBuscarNIF);
 
@@ -329,11 +354,23 @@ public class GestioJugador {
 
         // Listener per al botó Buscar NIF
         btnBuscarNIF.addActionListener(e -> {
+            String nom = txtBuscarNom.getText().trim();
             String nif = txtBuscarNIF.getText().trim();
-            //buscarPerNIF(nif); // Cridar la funció buscarPerNIF
+            Date dataNaix = null;
+            try {
+                if (!txtBuscarDataNaix.getText().trim().isEmpty()) {
+                    SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+                    dataNaix = format.parse(txtBuscarDataNaix.getText().trim());
+                }
+            } catch (Exception ex) {
+                // Mantener dataNaix como null si hay error
+            }
+            String categoria = (String) comboCategoria.getSelectedItem();
+            boolean ordenarPerCognom = chkOrdenarCognom.isSelected();
+            aplicarFiltrosCombinados(nom, nif, dataNaix, categoria, ordenarPerCognom);
         });
     }
-    /*
+    
     private void buscarPerNIF(String nif) {
         try {
             jugadorsFiltrats = persistencia.buscarPerNIFJugador(nif); // Utilitzar el mètode de la capa de persistència
@@ -352,14 +389,14 @@ public class GestioJugador {
             JOptionPane.showMessageDialog(null, "Error en buscar jugadors pel NIF: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    */
+    
     private void filtrePerDataNaix(JFrame frame) {
         // Afegir un camp de text per cercar per data de naixement
         JLabel lblBuscarDataNaix = new JLabel("DATA DE NAIXAMENT:");
         lblBuscarDataNaix.setBounds(480, 110, 140, 30);
         frame.add(lblBuscarDataNaix);
 
-        JTextField txtBuscarDataNaix = new JTextField();
+        txtBuscarDataNaix = new JTextField(); // Inicializar la variable de clase
         txtBuscarDataNaix.setBounds(620, 110, 100, 30);
         frame.add(txtBuscarDataNaix);
 
@@ -371,22 +408,21 @@ public class GestioJugador {
 
         // Listener per al botó Buscar Data de Naixement
         btnBuscarDataNaix.addActionListener(e -> {
-            String dataNaixStr = txtBuscarDataNaix.getText().trim();
-            if (!dataNaixStr.isEmpty()) {
-                try {
-                    // Validar que la data està en el format dd-MM-yyyy
+            String nom = txtBuscarNom.getText().trim();
+            String nif = txtBuscarNIF.getText().trim();
+            Date dataNaix = null;
+            try {
+                if (!txtBuscarDataNaix.getText().trim().isEmpty()) {
                     SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-                    format.setLenient(false); // Desactivar la flexibilitat en el format de data
-                    Date date = format.parse(dataNaixStr);
-
-                    // Convertir a java.sql.Date
-                    java.sql.Date dataNaix = new java.sql.Date(date.getTime());
-
-                    buscarPerDataNaix(dataNaix); // Cridar la funció buscarPerDataNaix
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(frame, "Format de data invàlid! El format correcte és dd-MM-yyyy.", "Error", JOptionPane.ERROR_MESSAGE);
+                    dataNaix = format.parse(txtBuscarDataNaix.getText().trim());
                 }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame, "Format de data invàlid! El format correcte és dd-MM-yyyy.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
+            String categoria = (String) comboCategoria.getSelectedItem();
+            boolean ordenarPerCognom = chkOrdenarCognom.isSelected();
+            aplicarFiltrosCombinados(nom, nif, dataNaix, categoria, ordenarPerCognom);
         });
     }
 
@@ -417,14 +453,26 @@ public class GestioJugador {
         frame.add(lblOrdenarPerCognom);
 
         // Crear un JCheckBox per activar/desactivar l'ordenació
-        JCheckBox chkOrdenarCognom = new JCheckBox();
+        chkOrdenarCognom = new JCheckBox(); // Inicializar la variable de clase
         chkOrdenarCognom.setBounds(750, 515, 20, 20);
         frame.add(chkOrdenarCognom);
 
         // Listener per al JCheckBox per ordenar els jugadors per cognom
         chkOrdenarCognom.addActionListener(e -> {
+            String nom = txtBuscarNom.getText().trim();
+            String nif = txtBuscarNIF.getText().trim();
+            Date dataNaix = null;
+            try {
+                if (!txtBuscarDataNaix.getText().trim().isEmpty()) {
+                    SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+                    dataNaix = format.parse(txtBuscarDataNaix.getText().trim());
+                }
+            } catch (Exception ex) {
+                // Mantener dataNaix como null si hay error
+            }
+            String categoria = (String) comboCategoria.getSelectedItem();
             boolean ordenarPerCognom = chkOrdenarCognom.isSelected();
-            buscarJugadorsOrdenatsPerCognom(ordenarPerCognom); // Cridar la funció per obtenir els jugadors ordenats
+            aplicarFiltrosCombinados(nom, nif, dataNaix, categoria, ordenarPerCognom);
         });
     }
 
@@ -454,6 +502,68 @@ public class GestioJugador {
             }
             aux = aux.getCause();
         } while (aux != null);
+    }
+
+    private void aplicarFiltrosCombinados(String nom, String nif, Date dataNaix, String categoria, boolean ordenarPerCognom) {
+        try {
+            // Comenzamos con la lista completa de jugadores
+            jugadorsFiltrats = new ArrayList<>(jugadors);
+
+            // Aplicar filtro por nombre
+            if (nom != null && !nom.isEmpty()) {
+                jugadorsFiltrats = jugadorsFiltrats.stream()
+                    .filter(j -> j.getNom().toLowerCase().contains(nom.toLowerCase()))
+                    .collect(Collectors.toList());
+            }
+
+            // Aplicar filtro por NIF
+            if (nif != null && !nif.isEmpty()) {
+                jugadorsFiltrats = jugadorsFiltrats.stream()
+                    .filter(j -> j.getIdLegal().toLowerCase().contains(nif.toLowerCase()))
+                    .collect(Collectors.toList());
+            }
+
+            // Aplicar filtro por fecha de nacimiento
+            if (dataNaix != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                String dataStr = sdf.format(dataNaix);
+                jugadorsFiltrats = jugadorsFiltrats.stream()
+                    .filter(j -> sdf.format(j.getDataNaix()).equals(dataStr))
+                    .collect(Collectors.toList());
+            }
+
+            // Aplicar filtro por categoría
+            if (categoria != null && !categoria.equals("Totes")) {
+                jugadorsFiltrats = jugadorsFiltrats.stream()
+                    .filter(j -> calcularCategoria(calcularEdat(j.getDataNaix())).equals(categoria))
+                    .collect(Collectors.toList());
+            }
+
+            // Aplicar ordenación por apellido si está activada
+            if (ordenarPerCognom) {
+                jugadorsFiltrats.sort(Comparator.comparing(Jugador::getCognoms));
+            }
+
+            // Actualizar la tabla
+            actualizarTabla();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error al aplicar los filtros: " + e.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void actualizarTabla() {
+        modelTaulaJugadors.setRowCount(0);
+        for (Jugador jugador : jugadorsFiltrats) {
+            modelTaulaJugadors.addRow(new Object[]{
+                jugador.getIdLegal(),
+                jugador.getNom(),
+                jugador.getCognoms(),
+                calcularEdat(jugador.getDataNaix()),
+                calcularCategoria(calcularEdat(jugador.getDataNaix()))
+            });
+        }
     }
 
 }

@@ -13,6 +13,7 @@ public class GestioTemporades {
     private DefaultTableModel modelTaulaTemporades;
     private JTextField txtAny; // Definida com a camp de classe
     private List<Temporada> temporades;
+    private JTable taulaTemporades;
 
     public GestioTemporades(IPersistencia persistencia) {
         this.persistencia = persistencia;
@@ -79,7 +80,7 @@ public class GestioTemporades {
             }
         };
 
-        JTable taulaTemporades = new JTable(modelTaulaTemporades);
+        taulaTemporades = new JTable(modelTaulaTemporades);
         taulaTemporades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(taulaTemporades);
         scrollPane.setBounds(70, 150, 200, 300);
@@ -168,8 +169,7 @@ public class GestioTemporades {
 
     // Funció per eliminar una temporada
     private void botoEliminarTemporada(JFrame frame) {
-        int filaSeleccionada = modelTaulaTemporades.getRowCount() > 0 ? modelTaulaTemporades.getRowCount() - 1 : -1;
-        filaSeleccionada = filaSeleccionada >= 0 ? filaSeleccionada : 0;
+        int filaSeleccionada = taulaTemporades.getSelectedRow();
 
         if (filaSeleccionada != -1) {
             // Obtenir l'any seleccionat a la taula

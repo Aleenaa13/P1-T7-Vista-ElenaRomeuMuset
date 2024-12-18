@@ -192,24 +192,164 @@ public class AfegirEditarJugador {
         errorID.setVisible(false); // Inicialment ocult
         frame.add(errorID);
         
+        JLabel errorDireccio = new JLabel("La direcció no pot començar amb un número");
+        errorDireccio.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 2 * separacio + altLabel + 12, ampleCamp, altLabel);
+        errorDireccio.setForeground(Color.RED);
+        errorDireccio.setVisible(false);
+        frame.add(errorDireccio);
+
+        JLabel errorPoblacio = new JLabel("La població no pot començar amb un número"); 
+        errorPoblacio.setBounds(xLabelDreta + ampleLabel + 10, yLabel + 2 * separacio + altLabel + 12, ampleCamp, altLabel);
+        errorPoblacio.setForeground(Color.RED);
+        errorPoblacio.setVisible(false);
+        frame.add(errorPoblacio);
+        
+        JLabel errorCampBuit = new JLabel("Aquest camp no pot estar buit");
+        errorCampBuit.setForeground(Color.RED);
+        errorCampBuit.setVisible(false);
+
         // Lògica del botó Guardar
         botoGuardar.addActionListener(e -> {
             try {
-                // Obtenir dades del formulari
-                String nom = campNom.getText();
-                if (nom.matches(".*\\d.*")) { // Comprovem si el nom té números
-                    errorNom.setVisible(true);
+                boolean hiHaErrors = false;
+                boolean hiHaErrorsFormat = false;
+                
+                // Nom
+                if (campNom.getText().trim().isEmpty()) {
+                    campNom.setBackground(new Color(255, 200, 200));
+                    hiHaErrors = true;
                 } else {
-                    errorNom.setVisible(false);
+                    campNom.setBackground(Color.WHITE);
+                    if (campNom.getText().matches(".*\\d.*")) {
+                        errorNom.setVisible(true);
+                        hiHaErrorsFormat = true;
+                    } else {
+                        errorNom.setVisible(false);
+                    }
                 }
                 
-                String cognoms = campCognoms.getText();
-                if (cognoms.matches(".*\\d.*")) { // Comprovem si els cognoms tenen números
-                    errorCognoms.setVisible(true);
+                // Cognoms
+                if (campCognoms.getText().trim().isEmpty()) {
+                    campCognoms.setBackground(new Color(255, 200, 200));
+                    hiHaErrors = true;
                 } else {
-                    errorCognoms.setVisible(false);
+                    campCognoms.setBackground(Color.WHITE);
+                    if (campCognoms.getText().matches(".*\\d.*")) {
+                        errorCognoms.setVisible(true);
+                        hiHaErrorsFormat = true;
+                    } else {
+                        errorCognoms.setVisible(false);
+                    }
                 }
-        
+                
+                // IBAN
+                if (campIBAN.getText().trim().isEmpty()) {
+                    campIBAN.setBackground(new Color(255, 200, 200));
+                    hiHaErrors = true;
+                } else {
+                    campIBAN.setBackground(Color.WHITE);
+                    if (campIBAN.getText().length() != 24) {
+                        errorIBAN.setVisible(true);
+                        hiHaErrorsFormat = true;
+                    } else {
+                        errorIBAN.setVisible(false);
+                    }
+                }
+                
+                // Direcció
+                if (campDireccio.getText().trim().isEmpty()) {
+                    campDireccio.setBackground(new Color(255, 200, 200));
+                    hiHaErrors = true;
+                } else {
+                    campDireccio.setBackground(Color.WHITE);
+                    if (campDireccio.getText().matches("^[0-9].*")) {
+                        errorDireccio.setVisible(true);
+                        hiHaErrorsFormat = true;
+                    } else {
+                        errorDireccio.setVisible(false);
+                    }
+                }
+                
+                // Població
+                if (campPoblacio.getText().trim().isEmpty()) {
+                    campPoblacio.setBackground(new Color(255, 200, 200));
+                    hiHaErrors = true;
+                } else {
+                    campPoblacio.setBackground(Color.WHITE);
+                    if (campPoblacio.getText().matches("^[0-9].*")) {
+                        errorPoblacio.setVisible(true);
+                        hiHaErrorsFormat = true;
+                    } else {
+                        errorPoblacio.setVisible(false);
+                    }
+                }
+                
+                // Codi Postal
+                if (campCodiPostal.getText().trim().isEmpty()) {
+                    campCodiPostal.setBackground(new Color(255, 200, 200));
+                    hiHaErrors = true;
+                } else {
+                    campCodiPostal.setBackground(Color.WHITE);
+                    if (!campCodiPostal.getText().matches("\\d{5}")) {
+                        errorCodiPostal.setVisible(true);
+                        hiHaErrorsFormat = true;
+                    } else {
+                        errorCodiPostal.setVisible(false);
+                    }
+                }
+                
+                // ID Legal
+                if (campIdLegal.getText().trim().isEmpty()) {
+                    campIdLegal.setBackground(new Color(255, 200, 200));
+                    hiHaErrors = true;
+                } else {
+                    campIdLegal.setBackground(Color.WHITE);
+                    if (!campIdLegal.getText().matches("\\d{8}[A-Z]")) {
+                        errorID.setVisible(true);
+                        hiHaErrorsFormat = true;
+                    } else {
+                        errorID.setVisible(false);
+                    }
+                }
+                
+                // Data Naixement
+                if (campDataNaix.getText().trim().isEmpty()) {
+                    campDataNaix.setBackground(new Color(255, 200, 200));
+                    hiHaErrors = true;
+                } else {
+                    campDataNaix.setBackground(Color.WHITE);
+                }
+                
+                // Foto
+                if (campFoto.getText().trim().isEmpty()) {
+                    campFoto.setBackground(new Color(255, 200, 200));
+                    hiHaErrors = true;
+                } else {
+                    campFoto.setBackground(Color.WHITE);
+                }
+                
+                // Any Fi Revisió
+                if (campAnyFiRevisio.getText().trim().isEmpty()) {
+                    campAnyFiRevisio.setBackground(new Color(255, 200, 200));
+                    hiHaErrors = true;
+                } else {
+                    campAnyFiRevisio.setBackground(Color.WHITE);
+                }
+
+                // Mostrar missatges d'error si és necessari
+                if (hiHaErrors) {
+                    JOptionPane.showMessageDialog(frame, "Tots els camps són obligatoris", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (hiHaErrorsFormat) {
+                    JOptionPane.showMessageDialog(frame, "Hi ha camps amb format incorrecte", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Si no hi ha errors, procedim a guardar
+                String nom = campNom.getText();
+                String cognoms = campCognoms.getText();
                 char sexe = radioDona.isSelected() ? 'D' : 'H';
                 
                 String dataNaixTextCamp = campDataNaix.getText();
@@ -218,35 +358,14 @@ public class AfegirEditarJugador {
                 Date dataNaix = sdf.parse(dataNaixTextCamp);
 
                 String IBAN = campIBAN.getText();
-                if (IBAN.length() != 24) {
-                    errorIBAN.setVisible(true);
-                } else {
-                    errorIBAN.setVisible(false);
-                }
-
-                // Obtenir la informació d'adreça
                 String direccio = campDireccio.getText();
                 String poblacio = campPoblacio.getText();
-                
                 String codiPostal = campCodiPostal.getText();
-                if (!codiPostal.matches("\\d{5}")) { // Només 5 dígits
-                    errorCodiPostal.setVisible(true);
-                } else {
-                    errorCodiPostal.setVisible(false);
-                }
-                
                 Adreca adreca = new Adreca(direccio, poblacio, codiPostal);
 
-                // Altres camps necessaris
                 String foto = campFoto.getText();
                 int anyFiRevisioMedica = Integer.parseInt(campAnyFiRevisio.getText());
-                
                 String idLegal = campIdLegal.getText();
-                if (!idLegal.matches("\\d+")) { // Comprovem que l'ID sigui només numèric
-                    errorID.setVisible(true);
-                } else {
-                    errorID.setVisible(false);
-                }
 
                 if(jugador != null){
                     jugador.setAdreca(adreca);
@@ -261,26 +380,17 @@ public class AfegirEditarJugador {
                     
                     persistencia.modificarJugador(jugador);
                     
-                }else{
-                    // Actualitzar el jugador amb les dades del formulari
-                  //  System.out.println("aqui");
+                } else {
                     Jugador j = new Jugador(nom, cognoms, adreca, foto, anyFiRevisioMedica, IBAN, idLegal, dataNaix, sexe);
-
-                    persistencia.afegirJugador( new Jugador(nom, cognoms, adreca, foto, anyFiRevisioMedica, IBAN, idLegal, dataNaix, sexe));
-                    
+                    persistencia.afegirJugador(j);
                 }
-                persistencia.confirmarCanvis();
                 
-
-                // Marcar que el jugador ha estat guardat
-                //jugadorGuardat[0] = true;
+                persistencia.confirmarCanvis();
                 JOptionPane.showMessageDialog(frame, "Jugador guardat amb èxit!");
-
-                // Tancar la finestra després de desar
                 frame.dispose();
+                
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage());
-               // infoError(ex);
             }
         });
 
