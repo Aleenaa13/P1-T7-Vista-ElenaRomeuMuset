@@ -1,57 +1,61 @@
 package p1.t7.vista.romeumusetelena;
 
-
-import com.formdev.flatlaf.FlatDarculaLaf;
-import com.formdev.flatlaf.FlatIntelliJLaf;
-import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
-import com.formdev.flatlaf.themes.FlatMacDarkLaf;
-import com.formdev.flatlaf.themes.FlatMacLightLaf;
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import org.esportsapp.persistencia.IPersistencia;
 
 public class IniciarPrograma {
     public static void main(String[] args) {
-        
+        iniciarTema();
+        validarArguments(args);
+        iniciarAplicacio(args[0]);
+    }
+    
+    private static void iniciarTema() {
         try {
             UIManager.setLookAndFeel(new FlatLightLaf());
         } catch (UnsupportedLookAndFeelException ex) {
-            System.out.println("Error al carregar THEME");
+            System.out.println("Error al carregar el tema");
         }
-        
+    }
+    
+    private static void validarArguments(String[] args) {
         if (args.length == 0) {
             System.out.println("Cal passar el nom de la classe que dona la persistència com a primer argument");
             System.exit(0);
         }
-       
-        // Crear una instància de la persistència
-        IPersistencia persistencia = null; // Exemple de com es podria crear una instància de persistència
-        String nomClassePersistencia = args[0];
-
-        // Iniciar la pantalla d'inici de sessió
-        try{
-            persistencia = (IPersistencia) Class.forName(nomClassePersistencia).newInstance();
-            PantallaIniciSessio pantallaInici = new PantallaIniciSessio();
-            pantallaInici.mostrarPantallaIniciSessio(persistencia);
-            
-            
-            IPersistencia finalPersistencia = persistencia; // Necesario porque las variables deben ser effectively final
-            
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                try {
-                    //System.out.println("Tancant la connexió amb la base de dades...");
-                    finalPersistencia.tancarConnexio(); // Método para cerrar la conexión
-                    //System.out.println("Connexió tancada correctament.");
-                } catch (Exception e) {
-                   // System.err.println("Error en tancar la connexió: " + e.getMessage());
-                }
-            }));
-        } catch(Exception ex){
+    }
+    
+    private static void iniciarAplicacio(String nomClassePersistencia) {
+        try {
+            IPersistencia persistencia = crearInstanciaPersistencia(nomClassePersistencia);
+            iniciarPantallaIniciSessio(persistencia);
+            configurarTancamentAplicacio(persistencia);
+        } catch(Exception ex) {
             System.out.println(ex.getMessage());
-            //JOptionPane.showMessageDialog(º"Usuari o contrasenya incorrecte!", "Error", JOptionPane.ERROR_MESSAGE);
         }
-        
+    }
+    
+    // Crea una instància dinàmica de la classe de persistència utilitzant reflection
+    private static IPersistencia crearInstanciaPersistencia(String nomClassePersistencia) throws Exception {
+        return (IPersistencia) Class.forName(nomClassePersistencia).newInstance();
+    }
+    
+    private static void iniciarPantallaIniciSessio(IPersistencia persistencia) {
+        PantallaIniciSessio pantallaInici = new PantallaIniciSessio();
+        pantallaInici.mostrarPantallaIniciSessio(persistencia);
+    }
+    
+    // Configura un hook per tancar la connexió amb la base de dades quan es tanca l'aplicació
+    private static void configurarTancamentAplicacio(IPersistencia persistencia) {
+        IPersistencia persistenciaFinal = persistencia;
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                persistenciaFinal.tancarConnexio();
+            } catch (Exception e) {
+                System.err.println("Error en tancar la connexió: " + e.getMessage());
+            }
+        }));
     }
 }

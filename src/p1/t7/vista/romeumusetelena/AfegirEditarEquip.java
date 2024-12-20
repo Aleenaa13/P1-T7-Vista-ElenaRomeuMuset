@@ -2,11 +2,11 @@ package p1.t7.vista.romeumusetelena;
 
 import javax.swing.*;
 import java.awt.*;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import org.esportsapp.persistencia.IPersistencia;
-import p1.t6.model.romeumusetelena.Adreca;
 import p1.t6.model.romeumusetelena.Equip;
 import p1.t6.model.romeumusetelena.GestorBDEsportsException;
 import p1.t6.model.romeumusetelena.Temporada;
@@ -19,19 +19,16 @@ import p1.t6.model.romeumusetelena.TipusMembre;
 public class AfegirEditarEquip {
     
     public static void mostrarFormulari(Equip equip, IPersistencia persistencia) {
-        // Crear el frame
         JFrame frame = new JFrame("Gestió d'Equips");
         frame.setSize(900, 600);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLayout(null);
-        frame.setResizable(false); // Finestra no redimensionable
-        frame.setLocationRelativeTo(null); // Centrar la finestra
+        frame.setResizable(false); 
+        frame.setLocationRelativeTo(null); 
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        // Fons blanc trencat
         Color blancTrencat = new Color(245, 245, 245);
         frame.getContentPane().setBackground(blancTrencat);
-        
-        // Crear el menú amb els botons desactivats
+
         int numBotons = 6;
         int ampladaBoto = 900 / numBotons;
         int alturaBoto = 40;
@@ -46,40 +43,40 @@ public class AfegirEditarEquip {
             botonsMenu[i].setFocusPainted(false);
             botonsMenu[i].setBorderPainted(false);
             botonsMenu[i].setOpaque(true);
-            botonsMenu[i].setEnabled(false); // Desactivar els botons perquè no siguin clicables
+            botonsMenu[i].setEnabled(false); // els desactivo per lògica
             frame.add(botonsMenu[i]);
         }
         
-        // Títol centrat
+        //això és perquè si posa un titol o un altre 
         JLabel titol = new JLabel(equip == null ? "AFEGIR EQUIP" : "EDITAR EQUIP", SwingConstants.CENTER);
         titol.setBounds(0, 60, 900, 40);
         titol.setFont(new Font("SansSerif", Font.BOLD, 24));
         titol.setForeground(new Color(70, 130, 180));
         frame.add(titol);
 
-        // Labels i camps de text
-        int xLabelEsquerra = 30;
-        int yLabel = 120;  // Empezamos un poco más arriba
+        int xLabelEsquerra = 50; 
+        int yLabel = 180;  
         int ampleLabel = 150;
         int altLabel = 30;
         int ampleCamp = 200;
         int altCamp = 30;
-        int separacio = 50;  // Aumentamos la separación entre elementos
+        int separacio = 50;
 
-        // Nom
         JLabel labelNom = new JLabel("Nom:");
         labelNom.setBounds(xLabelEsquerra, yLabel, ampleLabel, altLabel);
         frame.add(labelNom);
-        JTextField campNom = new JTextField(equip != null ? equip.getNom() : "");
+        String nomEquip = "";
+        if (equip != null) {
+            nomEquip = equip.getNom();
+        }
+        JTextField campNom = new JTextField(nomEquip);
         campNom.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel, ampleCamp, altCamp);
         frame.add(campNom);
 
-        // Tipus Equip
         JLabel labelTipusEquip = new JLabel("Tipus equip:");
         labelTipusEquip.setBounds(xLabelEsquerra, yLabel + separacio, ampleLabel, altLabel);
         frame.add(labelTipusEquip);
 
-        // Radio buttons con menos espacio entre ellos
         JRadioButton radioH = new JRadioButton("Masculí", equip != null && equip.getTipus() == TipusEquip.H);
         radioH.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + separacio, ampleCamp/3, altCamp);
         JRadioButton radioD = new JRadioButton("Femení", equip != null && equip.getTipus() == TipusEquip.D);
@@ -87,41 +84,33 @@ public class AfegirEditarEquip {
         JRadioButton radioM = new JRadioButton("Mixt", equip != null && equip.getTipus() == TipusEquip.M);
         radioM.setBounds(xLabelEsquerra + ampleLabel + 10 + 2*ampleCamp/3, yLabel + separacio, ampleCamp/3, altCamp);
 
-        // Agrupar els botons d'opció per garantir que només un es pugui seleccionar a la vegada
         ButtonGroup grupTipusEquip = new ButtonGroup();
-        grupTipusEquip.add(radioH);
-        grupTipusEquip.add(radioD);
+        grupTipusEquip.add(radioH); 
+        grupTipusEquip.add(radioD); 
         grupTipusEquip.add(radioM);
 
-        // Afegir els botons al frame
         frame.add(radioH);
         frame.add(radioD);
         frame.add(radioM);
 
-        // Declarar los ComboBox
         String[] categories = {"Benjamí", "Aleví", "Infantil", "Cadet", "Junior", "Senior"};
         JComboBox<String> comboCategoria = new JComboBox<>(categories);
         JComboBox<String> comboTemporada = new JComboBox<>();
 
-        // Añadir label para Categoria
         JLabel labelCategoria = new JLabel("Categoria:");
         labelCategoria.setBounds(xLabelEsquerra, yLabel + 2*separacio, ampleLabel, altLabel);
         frame.add(labelCategoria);
 
-        // Ajustar posición del ComboBox categoria
         comboCategoria.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 2*separacio, ampleCamp, altCamp);
-        frame.add(comboCategoria);  // Añadir el combobox al frame
+        frame.add(comboCategoria);  
 
-        // Añadir label para Temporada
         JLabel labelTemporada = new JLabel("Temporada:");
         labelTemporada.setBounds(xLabelEsquerra, yLabel + 3*separacio, ampleLabel, altLabel);
         frame.add(labelTemporada);
 
-        // Ajustar posición del ComboBox temporada
         comboTemporada.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 3*separacio, ampleCamp, altCamp);
-        frame.add(comboTemporada);  // Añadir el combobox al frame
+        frame.add(comboTemporada);
 
-        // Establir la categoria per defecte si no s'ha passat un equip
         if (equip != null) {
             String categoria = switch (equip.getIdCategoria()) {
                 case 1 -> "Benjamí";
@@ -134,26 +123,20 @@ public class AfegirEditarEquip {
             };
             comboCategoria.setSelectedItem(categoria);
         } else {
-            comboCategoria.setSelectedItem("Benjamí");  // Categoria per defecte
+            comboCategoria.setSelectedItem("Benjamí");  // assigno per defecte 
         }
-         
-        // Afegir l'ActionListener per filtrar per categoria
+        
         comboCategoria.addActionListener(e -> {
             String categoriaSeleccionada = (String) comboCategoria.getSelectedItem();
-            // Aquí pots implementar la lògica de filtratge per categoria si cal
         });
 
-
         try {
-            // Obtenir totes les temporades des de la base de dades
             List<Temporada> temporades = persistencia.obtenirTotesTemporades();
 
-            // Afegir totes les temporades al combo
             for (Temporada temporada : temporades) {
                 comboTemporada.addItem(String.valueOf(temporada.getAny()));
             }
 
-            // Establir la temporada actual si es passa un equip
             if (equip != null) {
                 comboTemporada.setSelectedItem(String.valueOf(equip.getAnyTemporada()));
             }
@@ -162,50 +145,109 @@ public class AfegirEditarEquip {
             JOptionPane.showMessageDialog(frame, "Error al obtenir les temporades: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
 
-        // Afegir l'ActionListener per filtrar per temporada
         comboTemporada.addActionListener(e -> {
             String temporadaSeleccionada = (String) comboTemporada.getSelectedItem();
-            // Aquí pots implementar la lògica de filtratge per temporada si cal
         });
 
-        
-        // Botons Acció
         JButton botoGuardar = new JButton("Guardar");
-        botoGuardar.setBounds(50, 450, 100, 40);  // Subimos los botones
-        botoGuardar.setBackground(new Color(173, 216, 230)); // Blau cel
+        botoGuardar.setBounds(50, 450, 100, 40); 
+        botoGuardar.setBackground(new Color(173, 216, 230)); 
         botoGuardar.setFocusPainted(false);
         frame.add(botoGuardar);
 
         JButton botoCancelar = new JButton("Cancelar");
         botoCancelar.setBounds(200, 450, 100, 40);
-        botoCancelar.setBackground(new Color(173, 216, 230)); // Blau cel
+        botoCancelar.setBackground(new Color(173, 216, 230)); 
         botoCancelar.setFocusPainted(false);
         frame.add(botoCancelar);
 
-        // Mostrar el frame
+        JPanel panelTaula = new JPanel();
+        panelTaula.setBounds(500, 180, 300, 150); 
+        panelTaula.setLayout(new BorderLayout());
+        
+        DefaultTableModel modelTaula = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
+        modelTaula.addColumn("Nom");
+        modelTaula.addColumn("Cognoms");
+        modelTaula.addColumn("Tipus");
+        
+        JTable taulaMembres = new JTable(modelTaula);
+        JScrollPane scrollPane = new JScrollPane(taulaMembres);
+        panelTaula.add(scrollPane);
+        
+        JLabel titolTaula = new JLabel("MEMBRES DE L'EQUIP", SwingConstants.CENTER);
+        titolTaula.setBounds(500, 150, 300, 30);  
+        titolTaula.setFont(new Font("SansSerif", Font.BOLD, 14));
+        titolTaula.setForeground(new Color(70, 130, 180));
+        frame.add(titolTaula);
+        
+        JButton botoGestioMembres = new JButton("Gestionar Membres");
+        botoGestioMembres.setBounds(575, 340, 150, 35);  
+        botoGestioMembres.setBackground(new Color(173, 216, 230));
+        botoGestioMembres.setFocusPainted(false);
+        frame.add(botoGestioMembres);
+
+        botoGestioMembres.addActionListener(e -> {
+            if (equip != null) {
+                frame.setVisible(false); 
+                GestioMembres.mostrarFormulari(equip, persistencia, modelTaula);
+            } else {
+                JOptionPane.showMessageDialog(frame,"Cal guardar l'equip primer per gestionar els membres","Avís",JOptionPane.WARNING_MESSAGE);
+            }
+        });
+        
+        //això és pq em tanqui la finestra
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent windowEvent) {
+                frame.dispose();
+                new GestioEquips(persistencia);
+            }
+        });
+
+        frame.add(panelTaula);
+        
+        if (equip != null) {
+            try {
+                List<Membre> membres = persistencia.obtenirMembresDEquip(equip.getId());
+                for (Membre membre : membres) {
+                    String tipus;
+                    if (membre.getTipus() == TipusMembre.TITULAR) {
+                        tipus = "Titular";
+                    } else {
+                        tipus = "Convidat"; 
+                    }
+                    modelTaula.addRow(new Object[]{
+                        membre.getJugador().getNom(),
+                        membre.getJugador().getCognoms(),
+                        tipus
+                    });
+                }
+            } catch (GestorBDEsportsException ex) {
+                JOptionPane.showMessageDialog(frame,"Error al carregar els membres: " + ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
         frame.setVisible(true);
 
-        JLabel errorNom = new JLabel("Exemple: Equip dels tigres");
-        errorNom.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 22, ampleCamp, altLabel);
-        errorNom.setForeground(Color.RED);
-        errorNom.setVisible(false); // Inicialment ocult
-        frame.add(errorNom);
-        
-        // Lògica del botó Guardar
         botoGuardar.addActionListener(e -> {
             try {
-                // Obtenir dades del formulari
                 String nom = campNom.getText();
-                if (nom.matches(".*\\d.*")) { // Comprovem si el nom té números
-                    errorNom.setVisible(true);
+
+                TipusEquip tipus;
+                if (radioH.isSelected()) {
+                    tipus = TipusEquip.H;
+                } else if (radioD.isSelected()) {
+                    tipus = TipusEquip.D;
                 } else {
-                    errorNom.setVisible(false);
+                    tipus = TipusEquip.M;
                 }
-
-                // Obtenir el tipus d'equip seleccionat
-                TipusEquip tipus = radioH.isSelected() ? TipusEquip.H : (radioD.isSelected() ? TipusEquip.D : TipusEquip.M);
-
-                // Obtenir la categoria seleccionada
+                
                 String categoriaSeleccionada = (String) comboCategoria.getSelectedItem();
                 int idCategoria = switch (categoriaSeleccionada) {
                     case "Benjamí" -> 1;
@@ -214,59 +256,63 @@ public class AfegirEditarEquip {
                     case "Cadet" -> 4;
                     case "Junior" -> 5;
                     case "Senior" -> 6;
-                    default -> 0; // Valor per defecte en cas que no es trobi
+                    default -> 0; 
                 };
 
-                // Obtenir la temporada seleccionada
                 int anyTemporada = Integer.parseInt((String) comboTemporada.getSelectedItem());
 
-                // Comprovar si és un equip existent o un de nou
+                // Aqui mira si un equip existeiz o es nou per psoar les dades
                 if (equip != null) {
-                    // Actualitzar les dades de l'equip existent
                     equip.setNom(nom);
                     equip.setTipus(tipus);
                     equip.setIdCategoria(idCategoria);
                     equip.setAnyTemporada(anyTemporada);
 
-                    // Modificar l'equip a la base de dades
                     persistencia.modificarEquip(equip);
                 } else {
-                    // Crear un nou equip
                     Equip nouEquip = new Equip(nom, tipus, anyTemporada, idCategoria);
                     persistencia.afegirEquip(nouEquip);
                 }
 
-                // Confirmar els canvis a la base de dades
                 persistencia.confirmarCanvis();
 
-                // Mostrar un missatge de confirmació
                 JOptionPane.showMessageDialog(frame, "Equip guardat amb èxit!");
 
-                // Tancar la finestra després de desar
                 frame.dispose();
+                new GestioEquips(persistencia);
 
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage());
             }
         });
 
-        // Lògica del botó Cancel·lar
-        botoCancelar.addActionListener(e -> frame.dispose());
+        botoCancelar.addActionListener(e -> {
+            frame.dispose();
+            new GestioEquips(persistencia);
+        });
 
-        // Mostrar la finestra
         frame.setVisible(true);
 
+        if (equip != null) {
+            comboTemporada.setEnabled(false);
+            comboCategoria.setEnabled(false);
+            radioH.setEnabled(false);
+            radioD.setEnabled(false);
+            radioM.setEnabled(false);
+            
+            String nomOriginal = equip.getNom();
+            
+            botoGuardar.setEnabled(false);
+            
+            //això ho he buscat, és per habilitar o deshabilitar el botó si han canviat el nom o no
+            campNom.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyReleased(KeyEvent e) {
+                    botoGuardar.setEnabled(!campNom.getText().equals(nomOriginal));
+                }
+            });
+        }
 
     }
     
-    
-    
-    private static void infoError(Throwable aux) {
-        do {
-            if (aux.getMessage() != null) {
-                System.out.println("\t" + aux.getMessage());
-            }
-            aux = aux.getCause();
-        } while (aux != null);
-    }
 }

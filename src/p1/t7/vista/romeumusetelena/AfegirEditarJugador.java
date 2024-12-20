@@ -4,26 +4,29 @@ import javax.swing.*;
 import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Calendar;
 import org.esportsapp.persistencia.IPersistencia;
 import p1.t6.model.romeumusetelena.Adreca;
 import p1.t6.model.romeumusetelena.Jugador;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
 
 public class AfegirEditarJugador {
 
     public static void mostrarFormulari(Jugador jugador, IPersistencia persistencia) {
-        // Crear el frame
         JFrame frame = new JFrame("Gestió de Jugadors");
         frame.setSize(900, 600);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLayout(null);
-        frame.setResizable(false); // Finestra no redimensionable
-        frame.setLocationRelativeTo(null); // Centrar la finestra
+        frame.setResizable(false); 
+        frame.setLocationRelativeTo(null); 
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Fons blanc trencat
         Color blancTrencat = new Color(245, 245, 245);
         frame.getContentPane().setBackground(blancTrencat);
         
-        // Crear el menú amb els botons desactivats
         int numBotons = 6;
         int ampladaBoto = 900 / numBotons;
         int alturaBoto = 40;
@@ -38,46 +41,64 @@ public class AfegirEditarJugador {
             botonsMenu[i].setFocusPainted(false);
             botonsMenu[i].setBorderPainted(false);
             botonsMenu[i].setOpaque(true);
-            botonsMenu[i].setEnabled(false); // Desactivar els botons perquè no siguin clicables
+            botonsMenu[i].setEnabled(false); // igual que a equips
             frame.add(botonsMenu[i]);
         }
         
-        // Títol centrat
         JLabel titol = new JLabel(jugador == null ? "AFEGIR JUGADOR" : "EDITAR JUGADOR", SwingConstants.CENTER);
         titol.setBounds(0, 60, 900, 40);
         titol.setFont(new Font("SansSerif", Font.BOLD, 24));
         titol.setForeground(new Color(70, 130, 180));
         frame.add(titol);
 
-        // Labels i camps de text
-        int xLabelEsquerra = 30, xLabelDreta = 500;  // Separació entre les dues columnes
+        int xLabelEsquerra = 30, xLabelDreta = 500;
         int yLabel = 130, ampleLabel = 150, altLabel = 30;
         int ampleCamp = 200, altCamp = 30;
         int separacio = 60;
-
-        // Primer grup de camps a l'esquerra
-        JLabel labelNom = new JLabel("Nom:");
+        
+        //tots aquests estan a l'esquerra
+         JLabel labelNom = new JLabel("Nom:");
         labelNom.setBounds(xLabelEsquerra, yLabel, ampleLabel, altLabel);
         frame.add(labelNom);
-        JTextField campNom = new JTextField(jugador != null ? jugador.getNom() : "");
+        String nomJugador = "";
+        if (jugador != null) {
+            nomJugador = jugador.getNom();
+        }
+        JTextField campNom = new JTextField(nomJugador);
         campNom.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel, ampleCamp, altCamp);
         frame.add(campNom);
 
         JLabel labelCognoms = new JLabel("Cognoms:");
         labelCognoms.setBounds(xLabelEsquerra, yLabel + separacio, ampleLabel, altLabel);
         frame.add(labelCognoms);
-        JTextField campCognoms = new JTextField(jugador != null ? jugador.getCognoms() : "");
+        String cognomsJugador = "";
+        if (jugador != null) {
+            cognomsJugador = jugador.getCognoms();
+        }
+        JTextField campCognoms = new JTextField(cognomsJugador);
         campCognoms.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + separacio, ampleCamp, altCamp);
         frame.add(campCognoms);
-
+        
+        
         JLabel labelSexe = new JLabel("Sexe:");
         labelSexe.setBounds(xLabelEsquerra, yLabel + 2 * separacio, ampleLabel, altLabel);
         frame.add(labelSexe);
-        JRadioButton radioDona = new JRadioButton("Dona", jugador != null && jugador.getSexe() == 'D');
+
+        JRadioButton radioDona = new JRadioButton("Dona");
+        JRadioButton radioHome = new JRadioButton("Home");
+
+        if (jugador != null) {
+            radioDona.setSelected(jugador.getSexe() == 'D');
+            radioHome.setSelected(jugador.getSexe() == 'H');
+        } else {
+            radioDona.setSelected(false);
+            radioHome.setSelected(false);
+        }
+
         radioDona.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 2 * separacio, ampleCamp / 2, altCamp);
-        JRadioButton radioHome = new JRadioButton("Home", jugador != null && jugador.getSexe() == 'H');
         radioHome.setBounds(xLabelEsquerra + ampleLabel + 10 + ampleCamp / 2, yLabel + 2 * separacio, ampleCamp / 2, altCamp);
         ButtonGroup grupSexe = new ButtonGroup();
+        
         grupSexe.add(radioDona);
         grupSexe.add(radioHome);
         frame.add(radioDona);
@@ -87,10 +108,11 @@ public class AfegirEditarJugador {
         labelDataNaix.setBounds(xLabelEsquerra, yLabel + 3 * separacio, ampleLabel, altLabel);
         frame.add(labelDataNaix);
 
-        // Formatar la data en el format dd-MM-yyyy
-        String dataNaixText = jugador != null ? new SimpleDateFormat("dd-MM-yyyy").format(jugador.getDataNaix()) : "";
-
-        // Assignar la data al camp de text
+        String dataNaixText = "";
+        if (jugador != null) {
+            dataNaixText = new SimpleDateFormat("dd-MM-yyyy").format(jugador.getDataNaix());
+        }
+        
         JTextField campDataNaix = new JTextField(dataNaixText);
         campDataNaix.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 3 * separacio, ampleCamp, altCamp);
         frame.add(campDataNaix);
@@ -99,7 +121,7 @@ public class AfegirEditarJugador {
         JLabel labelIdLegal = new JLabel("ID Legal:");
         labelIdLegal.setBounds(xLabelEsquerra, yLabel + 4 * separacio, ampleLabel, altLabel);
         frame.add(labelIdLegal);
-        JTextField campIdLegal = new JTextField(jugador != null ? jugador.getIdLegal() : "");
+        JTextField campIdLegal = new JTextField(jugador != null ? jugador.getIdLegal() : ""); //això ho deixo aixi pq em dona error i va millor que el if
         campIdLegal.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 4 * separacio, ampleCamp, altCamp);
         frame.add(campIdLegal);
 
@@ -107,75 +129,134 @@ public class AfegirEditarJugador {
         JLabel labelIBAN = new JLabel("IBAN:");
         labelIBAN.setBounds(xLabelDreta, yLabel, ampleLabel, altLabel);
         frame.add(labelIBAN);
-        JTextField campIBAN = new JTextField(jugador != null ? jugador.getIBAN() : "");
+        JTextField campIBAN = new JTextField(jugador != null ? jugador.getIBAN() : "");//igual
         campIBAN.setBounds(xLabelDreta + ampleLabel + 10, yLabel, ampleCamp, altCamp);
         frame.add(campIBAN);
 
         JLabel labelDireccio = new JLabel("Direcció:");
         labelDireccio.setBounds(xLabelDreta, yLabel + separacio, ampleLabel, altLabel);
         frame.add(labelDireccio);
-        JTextField campDireccio = new JTextField(jugador != null && jugador.getAdreca() != null ? jugador.getAdreca().getDireccio() : "");
+        JTextField campDireccio = new JTextField(jugador != null && jugador.getAdreca() != null ? jugador.getAdreca().getDireccio() : "");//igual
         campDireccio.setBounds(xLabelDreta + ampleLabel + 10, yLabel + separacio, ampleCamp, altCamp);
         frame.add(campDireccio);
 
         JLabel labelPoblacio = new JLabel("Població:");
         labelPoblacio.setBounds(xLabelDreta, yLabel + 2 * separacio, ampleLabel, altLabel);
         frame.add(labelPoblacio);
-        JTextField campPoblacio = new JTextField(jugador != null && jugador.getAdreca() != null ? jugador.getAdreca().getPoblacio() : "");
+        JTextField campPoblacio = new JTextField(jugador != null && jugador.getAdreca() != null ? jugador.getAdreca().getPoblacio() : "");//igual
         campPoblacio.setBounds(xLabelDreta + ampleLabel + 10, yLabel + 2 * separacio, ampleCamp, altCamp);
         frame.add(campPoblacio);
 
         JLabel labelCodiPostal = new JLabel("Codi Postal:");
         labelCodiPostal.setBounds(xLabelDreta, yLabel + 3 * separacio, ampleLabel, altLabel);
         frame.add(labelCodiPostal);
-        JTextField campCodiPostal = new JTextField(jugador != null && jugador.getAdreca() != null ? jugador.getAdreca().getCodiPostal() : "");
+        JTextField campCodiPostal = new JTextField(jugador != null && jugador.getAdreca() != null ? jugador.getAdreca().getCodiPostal() : "");//igual
         campCodiPostal.setBounds(xLabelDreta + ampleLabel + 10, yLabel + 3 * separacio, ampleCamp, altCamp);
         frame.add(campCodiPostal);
 
         JLabel labelFoto = new JLabel("Foto:");
         labelFoto.setBounds(xLabelDreta, yLabel + 4 * separacio, ampleLabel, altLabel);
         frame.add(labelFoto);
+        
+        JPanel panelFoto = new JPanel();
+        panelFoto.setLayout(null);
+        panelFoto.setBounds(xLabelDreta + ampleLabel + 10, yLabel + 4 * separacio, 150, 150); 
+        panelFoto.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        panelFoto.setBackground(Color.WHITE);
+        frame.add(panelFoto);
+
+        JLabel labelPreviewFoto = new JLabel();
+        labelPreviewFoto.setBounds(0, 0, 150, 150);
+        labelPreviewFoto.setHorizontalAlignment(SwingConstants.CENTER);
+        panelFoto.add(labelPreviewFoto);
+
         JTextField campFoto = new JTextField(jugador != null ? jugador.getFoto() : "");
-        campFoto.setBounds(xLabelDreta + ampleLabel + 10, yLabel + 4 * separacio, ampleCamp, altCamp);
-        frame.add(campFoto);
+        campFoto.setVisible(false);
+
+        if (jugador != null && !jugador.getFoto().isEmpty()) {
+            try {
+                ImageIcon imageIcon = new ImageIcon(jugador.getFoto());
+                Image image = imageIcon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+                labelPreviewFoto.setIcon(new ImageIcon(image));
+            } catch (Exception e) {
+                labelPreviewFoto.setText("No es pot carregar la imatge");
+            }
+        } else {
+            labelPreviewFoto.setText("Fes clic per seleccionar");
+        }
+        
+        //això també ho he buscat pq sino anava a deixar una string
+        panelFoto.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileFilter(new FileNameExtensionFilter("Imatges", "jpg", "jpeg", "png", "gif"));
+                
+                if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    try {
+                        
+                        campFoto.setText(selectedFile.getAbsolutePath());
+                        
+                        ImageIcon imageIcon = new ImageIcon(selectedFile.getPath());
+                        Image image = imageIcon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+                        labelPreviewFoto.setIcon(new ImageIcon(image));
+                        labelPreviewFoto.setText(""); 
+                        
+                        panelFoto.setBackground(Color.WHITE);
+                    } catch (Exception ex) {
+                        labelPreviewFoto.setText("Error al carregar la imatge");
+                        labelPreviewFoto.setIcon(null);
+                    }
+                }
+            }
+        });
 
         JLabel labelAnyFiRevisio = new JLabel("Any Fi Revisió:");
-        labelAnyFiRevisio.setBounds(xLabelDreta, yLabel + 5 * separacio, ampleLabel, altLabel);
+        labelAnyFiRevisio.setBounds(xLabelEsquerra, yLabel + 5 * separacio, ampleLabel, altLabel);
         frame.add(labelAnyFiRevisio);
-        JTextField campAnyFiRevisio = new JTextField(jugador != null ? String.valueOf(jugador.getAnyFiRevisioMedica()) : "2024");
-        campAnyFiRevisio.setBounds(xLabelDreta + ampleLabel + 10, yLabel + 5 * separacio, ampleCamp, altCamp);
+        
+        int anyActual = Calendar.getInstance().get(Calendar.YEAR);
+        JTextField campAnyFiRevisio = new JTextField(jugador != null ? String.valueOf(jugador.getAnyFiRevisioMedica()) : String.valueOf(anyActual));
+        campAnyFiRevisio.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 5 * separacio, ampleCamp, altCamp);
         frame.add(campAnyFiRevisio);
 
-        // Botons Acció
+        // Botons
         JButton botoGuardar = new JButton("Guardar");
         botoGuardar.setBounds(50, 500, 100, 40);
-        botoGuardar.setBackground(new Color(173, 216, 230)); // Blau cel
+        botoGuardar.setBackground(new Color(173, 216, 230)); 
         botoGuardar.setFocusPainted(false);
         frame.add(botoGuardar);
 
         JButton botoCancelar = new JButton("Cancelar");
         botoCancelar.setBounds(200, 500, 100, 40);
-        botoCancelar.setBackground(new Color(173, 216, 230)); // Blau cel
+        botoCancelar.setBackground(new Color(173, 216, 230));
         botoCancelar.setFocusPainted(false);
         frame.add(botoCancelar);
 
-        // Mostrar el frame
         frame.setVisible(true);
         
-        JLabel errorNom = new JLabel("Exemple: Joan");
-        errorNom.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 22, ampleCamp, altLabel);
+        //tot això son pels camps d'error
+        JLabel errorNom = new JLabel("Mínim 2 caràcters i sense números");
+        errorNom.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 27, ampleCamp, altLabel);
         errorNom.setForeground(Color.RED);
-        errorNom.setVisible(false); // Inicialment ocult
+        errorNom.setVisible(false); 
         frame.add(errorNom);
 
-        JLabel errorCognoms = new JLabel("Exemple: Garcia");
-        errorCognoms.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + separacio + altLabel + 12, ampleCamp, altLabel);
+        JLabel errorCognoms = new JLabel("Mínim 2 caràcters i sense números");
+        errorCognoms.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + separacio + altLabel, ampleCamp, altLabel);
         errorCognoms.setForeground(Color.RED);
         errorCognoms.setVisible(false);
         frame.add(errorCognoms);
-
+        
+        JLabel errorSexe = new JLabel("S'ha de seleccionar una opció");
+        errorSexe.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 2 * separacio + 27, ampleCamp, altLabel);
+        errorSexe.setForeground(Color.RED);
+        errorSexe.setVisible(false);
+        frame.add(errorSexe);
+        
         JLabel errorIBAN = new JLabel("Exemple: ES1234567890123456789012");
-        errorIBAN.setBounds(xLabelDreta + ampleLabel -10 , yLabel + 30, ampleCamp, altLabel);
+        errorIBAN.setBounds(xLabelDreta + ampleLabel + 10, yLabel + 30, ampleCamp + 30, altLabel);
         errorIBAN.setForeground(Color.RED);
         errorIBAN.setVisible(false);
         frame.add(errorIBAN);
@@ -187,26 +268,38 @@ public class AfegirEditarJugador {
         frame.add(errorCodiPostal);
 
         JLabel errorID = new JLabel("ID incorrecte. Exemple: 54825311Z");
-        errorID.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 4 * separacio + 23, ampleCamp, altLabel);
+        errorID.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 4 * separacio + 27, ampleCamp, altLabel);
         errorID.setForeground(Color.RED);
-        errorID.setVisible(false); // Inicialment ocult
+        errorID.setVisible(false); 
         frame.add(errorID);
         
-        JLabel errorDireccio = new JLabel("La direcció no pot començar amb un número");
-        errorDireccio.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 2 * separacio + altLabel + 12, ampleCamp, altLabel);
+        JLabel errorDireccio = new JLabel("Mínim 8 caràcters i inici sense números");
+        errorDireccio.setBounds(xLabelDreta + ampleLabel + 10, yLabel + separacio + 28, ampleCamp +30, altLabel);
         errorDireccio.setForeground(Color.RED);
         errorDireccio.setVisible(false);
         frame.add(errorDireccio);
 
-        JLabel errorPoblacio = new JLabel("La població no pot començar amb un número"); 
-        errorPoblacio.setBounds(xLabelDreta + ampleLabel + 10, yLabel + 2 * separacio + altLabel + 12, ampleCamp, altLabel);
+        JLabel errorPoblacio = new JLabel("Mínim 2 caràcters i inici sense números"); 
+        errorPoblacio.setBounds(xLabelDreta + ampleLabel + 10, yLabel + 2 * separacio + altLabel + 2, ampleCamp + 30, altLabel);
         errorPoblacio.setForeground(Color.RED);
         errorPoblacio.setVisible(false);
         frame.add(errorPoblacio);
         
+        JLabel errorDataNaix = new JLabel("Exemple: 30-04-2003");
+        errorDataNaix.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 3 * separacio + 27, ampleCamp + 30, altLabel);
+        errorDataNaix.setForeground(Color.RED);
+        errorDataNaix.setVisible(false);
+        frame.add(errorDataNaix);
+        
         JLabel errorCampBuit = new JLabel("Aquest camp no pot estar buit");
         errorCampBuit.setForeground(Color.RED);
         errorCampBuit.setVisible(false);
+
+        JLabel errorAnyFiRevisio = new JLabel("L'any ha de ser igual o superior a l'actual");
+        errorAnyFiRevisio.setBounds(xLabelEsquerra + ampleLabel + 10, yLabel + 5 * separacio + 27, ampleCamp + 30, altLabel);
+        errorAnyFiRevisio.setForeground(Color.RED);
+        errorAnyFiRevisio.setVisible(false);
+        frame.add(errorAnyFiRevisio);
 
         // Lògica del botó Guardar
         botoGuardar.addActionListener(e -> {
@@ -220,7 +313,7 @@ public class AfegirEditarJugador {
                     hiHaErrors = true;
                 } else {
                     campNom.setBackground(Color.WHITE);
-                    if (campNom.getText().matches(".*\\d.*")) {
+                    if (campNom.getText().matches(".*\\d.*") || campNom.getText().trim().length() < 2) {
                         errorNom.setVisible(true);
                         hiHaErrorsFormat = true;
                     } else {
@@ -234,12 +327,20 @@ public class AfegirEditarJugador {
                     hiHaErrors = true;
                 } else {
                     campCognoms.setBackground(Color.WHITE);
-                    if (campCognoms.getText().matches(".*\\d.*")) {
+                    if (campCognoms.getText().matches(".*\\d.*") || campCognoms.getText().trim().length() < 2) {
                         errorCognoms.setVisible(true);
                         hiHaErrorsFormat = true;
                     } else {
                         errorCognoms.setVisible(false);
                     }
+                }
+                
+                // sexe
+                if (!radioDona.isSelected() && !radioHome.isSelected()) {
+                    errorSexe.setVisible(true);
+                    hiHaErrors = true;
+                } else {
+                    errorSexe.setVisible(false);
                 }
                 
                 // IBAN
@@ -262,7 +363,7 @@ public class AfegirEditarJugador {
                     hiHaErrors = true;
                 } else {
                     campDireccio.setBackground(Color.WHITE);
-                    if (campDireccio.getText().matches("^[0-9].*")) {
+                    if (campDireccio.getText().matches("^[0-9].*") || campDireccio.getText().trim().length() < 8) {
                         errorDireccio.setVisible(true);
                         hiHaErrorsFormat = true;
                     } else {
@@ -276,7 +377,7 @@ public class AfegirEditarJugador {
                     hiHaErrors = true;
                 } else {
                     campPoblacio.setBackground(Color.WHITE);
-                    if (campPoblacio.getText().matches("^[0-9].*")) {
+                    if (campPoblacio.getText().matches("^[0-9].*") || campPoblacio.getText().trim().length() < 2) {
                         errorPoblacio.setVisible(true);
                         hiHaErrorsFormat = true;
                     } else {
@@ -318,14 +419,45 @@ public class AfegirEditarJugador {
                     hiHaErrors = true;
                 } else {
                     campDataNaix.setBackground(Color.WHITE);
+                    try {
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+                        sdf.setLenient(false);
+                        Date dataNaix = sdf.parse(campDataNaix.getText());
+                        Date dataActual = new Date();
+
+                        if (dataNaix.after(dataActual)) {
+                            errorDataNaix.setText("La data ha de ser passada");
+                            errorDataNaix.setVisible(true);
+                            hiHaErrorsFormat = true;
+                        } else {
+                            if (jugador != null) {
+                                if (!sdf.format(jugador.getDataNaix()).equals(campDataNaix.getText())) {
+                                    boolean permesCanviarData = persistencia.esPermesCanviarDataNaixement(jugador.getId(), dataNaix);
+                                    if (!permesCanviarData) {
+                                        errorDataNaix.setText("El canvi de data afectaria la categoria");
+                                        errorDataNaix.setVisible(true);
+                                        hiHaErrorsFormat = true;
+                                    } else {
+                                        errorDataNaix.setVisible(false);
+                                    }
+                                }
+                            } else {
+                                errorDataNaix.setVisible(false);
+                            }
+                        }
+                    } catch (Exception ex) {
+                        errorDataNaix.setText("Format incorrecte. Exemple: 30-04-2003");
+                        errorDataNaix.setVisible(true);
+                        hiHaErrorsFormat = true;
+                    }
                 }
                 
                 // Foto
                 if (campFoto.getText().trim().isEmpty()) {
-                    campFoto.setBackground(new Color(255, 200, 200));
+                    panelFoto.setBackground(new Color(255, 200, 200));
                     hiHaErrors = true;
                 } else {
-                    campFoto.setBackground(Color.WHITE);
+                    panelFoto.setBackground(Color.WHITE);
                 }
                 
                 // Any Fi Revisió
@@ -333,10 +465,23 @@ public class AfegirEditarJugador {
                     campAnyFiRevisio.setBackground(new Color(255, 200, 200));
                     hiHaErrors = true;
                 } else {
-                    campAnyFiRevisio.setBackground(Color.WHITE);
+                    try {
+                        int anyRevisio = Integer.parseInt(campAnyFiRevisio.getText());
+                        if (anyRevisio < anyActual) {
+                            campAnyFiRevisio.setBackground(new Color(255, 200, 200));
+                            errorAnyFiRevisio.setVisible(true);
+                            hiHaErrorsFormat = true;
+                        } else {
+                            campAnyFiRevisio.setBackground(Color.WHITE);
+                            errorAnyFiRevisio.setVisible(false);
+                        }
+                    } catch (NumberFormatException ex) {
+                        campAnyFiRevisio.setBackground(new Color(255, 200, 200));
+                        errorAnyFiRevisio.setVisible(true);
+                        hiHaErrorsFormat = true;
+                    }
                 }
-
-                // Mostrar missatges d'error si és necessari
+                
                 if (hiHaErrors) {
                     JOptionPane.showMessageDialog(frame, "Tots els camps són obligatoris", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
@@ -346,11 +491,25 @@ public class AfegirEditarJugador {
                     JOptionPane.showMessageDialog(frame, "Hi ha camps amb format incorrecte", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-
-                // Si no hi ha errors, procedim a guardar
+                
+                //comprova si es pot canviar el sexe
+                if (jugador != null) {
+                    char sexeOriginal = jugador.getSexe();
+                    char sexeNou = radioDona.isSelected() ? 'D' : 'H';
+                    
+                    if (sexeOriginal != sexeNou) {
+                        boolean permesCanviarSexe = persistencia.esPermesCanviarSexe(jugador.getId());
+                        if (!permesCanviarSexe) {
+                            JOptionPane.showMessageDialog(frame,
+                                "No es pot canviar el sexe perquè el jugador pertany a un equip no mixt","Error",JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
+                }
+                
                 String nom = campNom.getText();
                 String cognoms = campCognoms.getText();
-                char sexe = radioDona.isSelected() ? 'D' : 'H';
+                char sexe = radioDona.isSelected() ? 'D' : 'H'; //així és més curt
                 
                 String dataNaixTextCamp = campDataNaix.getText();
                 SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
@@ -361,7 +520,7 @@ public class AfegirEditarJugador {
                 String direccio = campDireccio.getText();
                 String poblacio = campPoblacio.getText();
                 String codiPostal = campCodiPostal.getText();
-                Adreca adreca = new Adreca(direccio, poblacio, codiPostal);
+                Adreca adreca = new Adreca(direccio, codiPostal, poblacio);
 
                 String foto = campFoto.getText();
                 int anyFiRevisioMedica = Integer.parseInt(campAnyFiRevisio.getText());
@@ -387,42 +546,21 @@ public class AfegirEditarJugador {
                 
                 persistencia.confirmarCanvis();
                 JOptionPane.showMessageDialog(frame, "Jugador guardat amb èxit!");
-                frame.dispose();
                 
+                frame.dispose();
+                new GestioJugador(persistencia);
+
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage());
             }
         });
 
-        // Lògica del botó Cancel·lar
-        botoCancelar.addActionListener(e -> frame.dispose());
+        botoCancelar.addActionListener(e -> {
+            frame.dispose();
+            new GestioJugador(persistencia);
+        });
 
-        // Mostrar la finestra
         frame.setVisible(true);
 
-        // Esperar fins que la finestra es tanqui (els esdeveniments es gestionen dins d'ActionListener)
-//        while (frame.isVisible()) {
-//            try {
-//                Thread.sleep(100); // Esperem fins que la finestra es tanqui
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-
-        // Retornar el jugador actualitzat només si ha estat guardat
-//        if (jugadorGuardat[0]) {
-//            return jugadorActualitzat[0];
-//        } else {
-//            return null;
-//        }
-    }
-    
-    private static void infoError(Throwable aux) {
-        do {
-            if (aux.getMessage() != null) {
-                System.out.println("\t" + aux.getMessage());
-            }
-            aux = aux.getCause();
-        } while (aux != null);
     }
 }

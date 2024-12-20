@@ -4,93 +4,114 @@ import javax.swing.*;
 import java.awt.*;
 import org.esportsapp.persistencia.IPersistencia;
 import p1.t6.model.romeumusetelena.GestorBDEsportsException;
+import p1.t6.model.romeumusetelena.Usuari;
 
 public class PantallaIniciSessio {
     private IPersistencia persistencia;
     
     public void mostrarPantallaIniciSessio(IPersistencia persistencia) {
         this.persistencia = persistencia;
-        // Crear el frame principal
-        JFrame frame = new JFrame("Inici de Sessió - Gestió Futbol");
-        frame.setSize(900, 600);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLocationRelativeTo(null); // Centrar el frame a la pantalla
-        frame.setResizable(false); // Impedir que la finestra canviï de mida
-        frame.setLayout(new GridBagLayout()); // Utilitzem GridBagLayout per centrar els elements
-        GridBagConstraints gbc = new GridBagConstraints(); // Per gestionar el disseny de la finestra
-
-        // Fons de la finestra
-        frame.getContentPane().setBackground(new java.awt.Color(245, 245, 245)); // Fons blanc trencat
-
-        // Etiquetes
-        JLabel lblUsuari = new JLabel("Usuari:");
-        lblUsuari.setFont(new Font("Arial", Font.PLAIN, 14));
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(10, 10, 10, 10); // Separació entre components
-        frame.add(lblUsuari, gbc);
-
-        JLabel lblContrasenya = new JLabel("Contrasenya:");
-        lblContrasenya.setFont(new Font("Arial", Font.PLAIN, 14));
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        frame.add(lblContrasenya, gbc);
-
-        // Camps de text
-        JTextField txtUsuari = new JTextField();
-        txtUsuari.setPreferredSize(new Dimension(200, 25));
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        frame.add(txtUsuari, gbc);
-
-        JPasswordField txtContrasenya = new JPasswordField();
-        txtContrasenya.setPreferredSize(new Dimension(200, 25));
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        frame.add(txtContrasenya, gbc);
-
-        // Botons
-        JButton btnIniciarSessio = new JButton("Iniciar Sessió");
-        btnIniciarSessio.setBackground(new java.awt.Color(0, 102, 204)); // Blau elèctric
-        btnIniciarSessio.setForeground(java.awt.Color.WHITE);
-        btnIniciarSessio.setPreferredSize(new Dimension(150, 30));
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2; // El botó ocupa dues columnes
-        frame.add(btnIniciarSessio, gbc);
-
-        JButton btnOblidatContrasenya = new JButton("Has oblidat la contrasenya?");
-        btnOblidatContrasenya.setBackground(new java.awt.Color(0, 102, 204)); // Blau elèctric
-        btnOblidatContrasenya.setForeground(java.awt.Color.WHITE);
-        btnOblidatContrasenya.setPreferredSize(new Dimension(200, 30));
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2; // El botó ocupa dues columnes
-        frame.add(btnOblidatContrasenya, gbc);
-
-        // Acció del botó "Iniciar Sessió"
-        btnIniciarSessio.addActionListener(e -> {
-            String usuari = txtUsuari.getText();
-            String contrasenya = new String(txtContrasenya.getPassword());
+        inicialitzarFinestra();
+    }
+    
+    private void inicialitzarFinestra() {
+        JFrame finestra = crearFinestra();
+        
+        JTextField campUsuari = afegirCampUsuari(finestra);
+        JPasswordField campContrasenya = afegirCampContrasenya(finestra);
+        afegirEtiquetes(finestra);
+        afegirBotons(finestra, campUsuari, campContrasenya);
+        
+        finestra.setVisible(true);
+    }
+    
+    private JFrame crearFinestra() {
+        JFrame finestra = new JFrame("Inici de Sessió - Gestió Futbol");
+        finestra.setSize(900, 600);
+        finestra.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        finestra.setLocationRelativeTo(null);
+        finestra.setResizable(false);
+        finestra.setLayout(null);
+        finestra.getContentPane().setBackground(new Color(245, 245, 245));
+        return finestra;
+    }
+    
+    private void afegirEtiquetes(JFrame finestra) {
+        JLabel etiquetaUsuari = new JLabel("Usuari:");
+        etiquetaUsuari.setFont(new Font("Arial", Font.PLAIN, 14));
+        etiquetaUsuari.setBounds(300, 200, 100, 30);
+        finestra.add(etiquetaUsuari);
+        
+        JLabel etiquetaContrasenya = new JLabel("Contrasenya:");
+        etiquetaContrasenya.setFont(new Font("Arial", Font.PLAIN, 14));
+        etiquetaContrasenya.setBounds(300, 250, 100, 30);
+        finestra.add(etiquetaContrasenya);
+    }
+    
+    private JTextField afegirCampUsuari(JFrame finestra) {
+        JTextField campUsuari = new JTextField();
+        campUsuari.setBounds(400, 200, 200, 30);
+        finestra.add(campUsuari);
+        return campUsuari;
+    }
+    
+    private JPasswordField afegirCampContrasenya(JFrame finestra) {
+        JPasswordField campContrasenya = new JPasswordField();
+        campContrasenya.setBounds(400, 250, 200, 30);
+        finestra.add(campContrasenya);
+        return campContrasenya;
+    }
+    
+    private void afegirBotons(JFrame finestra, JTextField campUsuari, JPasswordField campContrasenya) {
+        JButton botoIniciarSessio = crearBotoIniciarSessio();
+        botoIniciarSessio.setBounds(375, 300, 150, 30);
+        finestra.add(botoIniciarSessio);
+        afegirAccioBotoIniciarSessio(botoIniciarSessio, finestra, campUsuari, campContrasenya);
+        
+        JButton botoOblidatContrasenya = crearBotoContrasenyaOblidada();
+        botoOblidatContrasenya.setBounds(350, 350, 200, 30);
+        finestra.add(botoOblidatContrasenya);
+        afegirAccioBotoContrseanyaOblidada(botoOblidatContrasenya);
+    }
+    
+    private JButton crearBotoIniciarSessio() {
+        JButton boto = new JButton("Iniciar Sessió");
+        boto.setBackground(new Color(0, 102, 204));
+        boto.setForeground(Color.WHITE);
+        return boto;
+    }
+    
+    private void afegirAccioBotoIniciarSessio(JButton boto, JFrame finestra, JTextField campUsuari, JPasswordField campContrasenya) {
+        boto.addActionListener(e -> {
+            String usuari = campUsuari.getText();
+            String contrasenya = new String(campContrasenya.getPassword());
 
             try {
-                if (persistencia.validarUsuari(usuari, contrasenya)) {
-                    frame.dispose(); // Tanca la pantalla actual
-                    new PantallaPrincipal(persistencia); // Obre la pantalla principal
+                if (persistencia.validarUsuari(usuari, Usuari.encriptarContrasenya(contrasenya))) {
+                    finestra.dispose();
+                    new PantallaPrincipal(persistencia);
                 } else {
-                    JOptionPane.showMessageDialog(frame, "Usuari o contrasenya incorrecte!");
+                    JOptionPane.showMessageDialog(finestra, "Usuari o contrasenya incorrecte!");
                 }
             } catch (GestorBDEsportsException ex) {
-                JOptionPane.showMessageDialog(frame, "Error en validar l'usuari: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(finestra, 
+                        "Error en validar l'usuari: " + ex.getMessage(), 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
             }
         });
-
-        // Acció del botó "Has oblidat la contrasenya?"
-        btnOblidatContrasenya.addActionListener(e -> {
-            JOptionPane.showMessageDialog(frame, "Contacte amb l'administrador del club.");
+    }
+    
+    private JButton crearBotoContrasenyaOblidada() {
+        JButton boto = new JButton("Has oblidat la contrasenya?");
+        boto.setBackground(new Color(0, 102, 204));
+        boto.setForeground(Color.WHITE);
+        return boto;
+    }
+    
+    private void afegirAccioBotoContrseanyaOblidada(JButton boto) {
+        boto.addActionListener(e -> {
+            JOptionPane.showMessageDialog(null, "Contacte amb l'administrador del club.");
         });
-
-        // Mostrar el frame
-        frame.setVisible(true);
     }
 }

@@ -9,124 +9,167 @@ import p1.t6.model.romeumusetelena.Temporada;
 import org.esportsapp.persistencia.IPersistencia;
 
 public class GestioTemporades {
-    private IPersistencia persistencia; // Per accedir a la interfície de persistència
+    // Constants de configuració
+    private static final int AMPLADA_FINESTRA = 900;
+    private static final int ALTURA_FINESTRA = 600;
+    private static final int ALTURA_BOTO_MENU = 40;
+    private static final int MARGE_LATERAL = 100;
+    private static final int ALTURA_TITOL = 40;
+    
+    // Components de la interfície
+    private IPersistencia persistencia;
     private DefaultTableModel modelTaulaTemporades;
-    private JTextField txtAny; // Definida com a camp de classe
+    private JTextField txtAny;
     private List<Temporada> temporades;
     private JTable taulaTemporades;
+    private JFrame finestra;
 
     public GestioTemporades(IPersistencia persistencia) {
         this.persistencia = persistencia;
+        inicialitzarFinestra();
+        configurarMenuSuperior();
+        afegirTitol();
+        configurarPanellPrincipal();
+        carregarTemporades();
+        finestra.setVisible(true);
+    }
 
-        // Crear el frame
-        JFrame frame = new JFrame("Gestió de Temporades");
-        frame.setSize(900, 600);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(null);
-        frame.setResizable(false);
-        frame.setLocationRelativeTo(null);
-
-        // Fons blanc trencat
+    private void inicialitzarFinestra() {
+        finestra = new JFrame("Gestió de Temporades");
+        finestra.setSize(AMPLADA_FINESTRA, ALTURA_FINESTRA);
+        finestra.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        finestra.setLayout(null);
+        finestra.setResizable(false);
+        finestra.setLocationRelativeTo(null);
+        
         Color blancTrencat = new Color(245, 245, 245);
-        frame.getContentPane().setBackground(blancTrencat);
+        finestra.getContentPane().setBackground(blancTrencat);
+    }
+    
+    private void afegirTitol() {
+        JLabel titol = new JLabel("GESTOR CLUB FUTBOL", SwingConstants.CENTER);
+        titol.setBounds(0, 60, AMPLADA_FINESTRA, ALTURA_TITOL);
+        titol.setFont(new Font("SansSerif", Font.BOLD, 24));
+        titol.setForeground(new Color(70, 130, 180));
+        finestra.add(titol);
+    }
 
-        // Menú superior
+    private void configurarMenuSuperior() {
         int numBotons = 6;
-        int ampladaBoto = 900 / numBotons;
-        int alturaBoto = 40;
+        int ampladaBoto = AMPLADA_FINESTRA / numBotons;
         String[] nomsBotons = {"INICI", "EQUIPS", "JUGADORS", "TEMPORADES", "INFORMES", "TANCAR SESSIÓ"};
         JButton[] botonsMenu = new JButton[numBotons];
 
         for (int i = 0; i < nomsBotons.length; i++) {
-            botonsMenu[i] = new JButton(nomsBotons[i]);
-            botonsMenu[i].setBounds(i * ampladaBoto, 0, ampladaBoto, alturaBoto);
-            botonsMenu[i].setBackground(new Color(70, 130, 180));
-            botonsMenu[i].setForeground(Color.WHITE);
-            botonsMenu[i].setFocusPainted(false);
-            botonsMenu[i].setBorderPainted(false);
-            botonsMenu[i].setOpaque(true);
-            frame.add(botonsMenu[i]);
+            JButton boto = new JButton(nomsBotons[i]);
+            boto.setBounds(i * ampladaBoto, 0, ampladaBoto, ALTURA_BOTO_MENU);
+            boto.setBackground(new Color(70, 130, 180));
+            boto.setForeground(Color.WHITE);
+            boto.setFocusPainted(false);
+            boto.setBorderPainted(false);
+            boto.setOpaque(true);
+            finestra.add(boto);
+            botonsMenu[i] = boto;
         }
 
-        // Vincular accions als botons del menú
-        botonsMenu[5].addActionListener(e -> {
-            TancarSessio.executar(frame, persistencia);
-        });
         botonsMenu[0].addActionListener(e -> {
-            frame.dispose();
+            finestra.dispose();
             new PantallaPrincipal(persistencia);
         });
         botonsMenu[1].addActionListener(e -> {
-            frame.dispose();
+            finestra.dispose();
             new GestioEquips(persistencia);
         });
         botonsMenu[2].addActionListener(e -> {
-            frame.dispose();
+            finestra.dispose();
             new GestioJugador(persistencia);
         });
+        
+        //botonsMenu[3].setEnabled(false);
+        
+        botonsMenu[4].addActionListener(e -> {
+            finestra.dispose();
+            new Informes(persistencia);
+        });
+        botonsMenu[5].addActionListener(e -> TancarSessio.executar(finestra, persistencia));
+    }
 
-        // Títol centrat
-        JLabel titol = new JLabel("GESTOR CLUB FUTBOL", SwingConstants.CENTER);
-        titol.setBounds(0, 60, 900, 40);
-        titol.setFont(new Font("SansSerif", Font.BOLD, 24));
-        titol.setForeground(new Color(70, 130, 180));
-        frame.add(titol);
+    private void configurarPanellPrincipal() {
+        JPanel panellPrincipal = crearPanellPrincipal();
+        inicialitzarTaula(panellPrincipal);
+        configurarFormulari(panellPrincipal);
+        finestra.add(panellPrincipal);
+    }
 
-        // Configurar la taula
+    private JPanel crearPanellPrincipal() {
+        JPanel panell = new JPanel(null);
+        panell.setBounds(MARGE_LATERAL, 120, 700, 350);
+        panell.setBackground(Color.WHITE);
+        panell.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        return panell;
+    }
+
+    private void inicialitzarTaula(JPanel panellPrincipal) {
         modelTaulaTemporades = new DefaultTableModel(new String[]{"TEMPORADES"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Cap cel·la és editable
+                return false;
             }
         };
 
         taulaTemporades = new JTable(modelTaulaTemporades);
         taulaTemporades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
         JScrollPane scrollPane = new JScrollPane(taulaTemporades);
-        scrollPane.setBounds(70, 150, 200, 300);
-        frame.add(scrollPane);
+        scrollPane.setBounds(20, 20, 250, 250);
+        panellPrincipal.add(scrollPane);
 
-        // Botons
-        JButton btnAfegir = new JButton("Afegir");
-        btnAfegir.setBounds(600, 340, 100, 30);
-        btnAfegir.setBackground(new Color(70, 130, 180));
-        frame.add(btnAfegir);
+        JButton btnEliminar = crearBotoEliminar();
+        panellPrincipal.add(btnEliminar);
+    }
 
-        JButton btnEliminar = new JButton("Eliminar");
-        btnEliminar.setBounds(70, 490, 100, 30);
-        btnEliminar.setBackground(new Color(173, 216, 230));
-        frame.add(btnEliminar);
+    private void configurarFormulari(JPanel panellPrincipal) {
+        JPanel panellFormulari = new JPanel(null);
+        panellFormulari.setBounds(290, 20, 390, 310);
+        panellFormulari.setBackground(Color.WHITE);
 
-        JLabel lblAny = new JLabel("Any:");
-        lblAny.setBounds(540, 270, 40, 30);
-        frame.add(lblAny);
+        afegirTitolFormulari(panellFormulari);
+        afegirCampAny(panellFormulari);
+        afegirBotoAfegir(panellFormulari);
 
-        txtAny = new JTextField(); // Inicialitzar el camp com a atribut
-        txtAny.setBounds(600, 270, 150, 30);
-        frame.add(txtAny);
-        
-        JLabel lblTitolAfegir = new JLabel("AFEGIR TEMPORADES", SwingConstants.CENTER);
-        lblTitolAfegir.setBounds(525, 210, 250, 30);
-        lblTitolAfegir.setFont(new Font("SansSerif", Font.BOLD, 16));
+        panellPrincipal.add(panellFormulari);
+    }
+
+    private void afegirTitolFormulari(JPanel panell) {
+        JLabel lblTitolAfegir = new JLabel("AFEGIR TEMPORADA", SwingConstants.CENTER);
+        lblTitolAfegir.setBounds(0, 20, 390, 30);
+        lblTitolAfegir.setFont(new Font("SansSerif", Font.BOLD, 18));
         lblTitolAfegir.setForeground(new Color(70, 130, 180));
-        frame.add(lblTitolAfegir);
+        panell.add(lblTitolAfegir);
+    }
 
-        JPanel recuadre = new JPanel();
-        recuadre.setBounds(500, 200, 300, 200);
-        recuadre.setBackground(new Color(220, 240, 250));
-        recuadre.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 2)); // Bordes del recuadre en negre
-        frame.add(recuadre);
-        
-        // Carregar dades de la base de dades
-        carregarTemporades();
-        
+    private void afegirCampAny(JPanel panell) {
+        txtAny = new JTextField();
+        txtAny.setBounds(95, 80, 200, 30);
+        panell.add(txtAny);
+    }
 
-        // Mostrar el frame
-        frame.setVisible(true);
+    private void afegirBotoAfegir(JPanel panell) {
+        JButton btnAfegir = new JButton("Afegir");
+        btnAfegir.setBounds(145, 130, 100, 30);
+        btnAfegir.setBackground(new Color(135, 206, 250));
+        btnAfegir.setFocusPainted(false);
+        btnAfegir.addActionListener(e -> botoAfegirTemporada());
+        panell.add(btnAfegir);
+    }
 
-        // Assignació dels botons
-        btnAfegir.addActionListener(e -> botoAfegirTemporada(frame));
-        btnEliminar.addActionListener(e -> botoEliminarTemporada(frame));
+    private JButton crearBotoEliminar() {
+        JButton btnEliminar = new JButton("Eliminar");
+        btnEliminar.setBounds(20, 280, 100, 30);
+        btnEliminar.setBackground(new Color(135, 206, 250));
+        btnEliminar.setFocusPainted(false);
+        btnEliminar.addActionListener(e -> botoEliminarTemporada());
+        return btnEliminar;
     }
 
     private void carregarTemporades() {
@@ -134,16 +177,16 @@ public class GestioTemporades {
             temporades = persistencia.obtenirTotesTemporades();
             modelTaulaTemporades.setRowCount(0);
             for (Temporada temporada : temporades) {
-                modelTaulaTemporades.addRow(new Object[]{temporada.getAny()});
+                modelTaulaTemporades.addRow(new Integer[]{temporada.getAny()});
             }
         } catch (GestorBDEsportsException e) {
             JOptionPane.showMessageDialog(null, "Error en obtenir les temporades: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void botoAfegirTemporada(JFrame frame) {
+    private void botoAfegirTemporada() {
         String anyText = txtAny.getText();
-        if (anyText != null && !anyText.isEmpty()) {
+        if (anyText != null && !anyText.equals("")) {
             try {
                 int any = Integer.parseInt(anyText);
                 Temporada novaTemporada = new Temporada(any);
@@ -151,56 +194,50 @@ public class GestioTemporades {
                 boolean afegida = persistencia.afegirTemporada(novaTemporada);
                 
                 if (afegida) {
-                    JOptionPane.showMessageDialog(frame, "Temporada afegida correctament.", "Èxit", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(finestra, "Temporada afegida correctament.", "Èxit", JOptionPane.INFORMATION_MESSAGE);
                     persistencia.confirmarCanvis();
                     carregarTemporades();
                 } else {
-                    JOptionPane.showMessageDialog(frame, "La temporada ja existeix.", "Error", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(finestra, "La temporada ja existeix.", "Error", JOptionPane.WARNING_MESSAGE);
                 }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (HeadlessException | NumberFormatException | GestorBDEsportsException ex) {
+                JOptionPane.showMessageDialog(finestra, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             } finally {
-                txtAny.setText("");
+                txtAny.setText(""); //tornar a posar el text buit
             }
         } else {
-            JOptionPane.showMessageDialog(frame, "El camp de l'any no pot estar buit.", "Error", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(finestra, "El camp de l'any no pot estar buit.", "Error", JOptionPane.WARNING_MESSAGE);
         }
     }
 
-    // Funció per eliminar una temporada
-    private void botoEliminarTemporada(JFrame frame) {
+    private void botoEliminarTemporada() {
         int filaSeleccionada = taulaTemporades.getSelectedRow();
 
         if (filaSeleccionada != -1) {
-            // Obtenir l'any seleccionat a la taula
             int any = (int) modelTaulaTemporades.getValueAt(filaSeleccionada, 0);
 
-            // Confirmació de l'eliminació
-            int confirm = JOptionPane.showConfirmDialog(frame,
-                    "Estàs segur de voler eliminar la temporada " + any + "?",
-                    "Confirmar Eliminació",
-                    JOptionPane.YES_NO_OPTION);
+            int confirmar = JOptionPane.showConfirmDialog(finestra,"Estàs segur de voler eliminar la temporada " + any + "?",
+                    "Confirmar Eliminació",JOptionPane.YES_NO_OPTION);
 
-            if (confirm == JOptionPane.YES_OPTION) {
+            if (confirmar == JOptionPane.YES_OPTION) {
                 try {
-                    // Intentar eliminar la temporada
                     boolean eliminada = persistencia.eliminarTemporada(any);
                     
                     if (eliminada) {
-                        JOptionPane.showMessageDialog(frame, "Temporada eliminada correctament.", "Èxit", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(finestra, "Temporada eliminada correctament.", "Èxit", JOptionPane.INFORMATION_MESSAGE);
                         persistencia.confirmarCanvis();
-                        carregarTemporades(); // Actualitzar la llista
+                        carregarTemporades();
                     } else {
-                        JOptionPane.showMessageDialog(frame, "No es pot eliminar aquesta temporada.", "Error", JOptionPane.WARNING_MESSAGE);
+                        JOptionPane.showMessageDialog(finestra, "No es pot eliminar aquesta temporada.", "Error", JOptionPane.WARNING_MESSAGE);
                     }
                 } catch (GestorBDEsportsException ex) {
-                    JOptionPane.showMessageDialog(frame, "Error en eliminar la temporada: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(frame, "S'ha produït un error inesperat: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(finestra, "Error en eliminar la temporada: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (HeadlessException ex) {
+                    JOptionPane.showMessageDialog(finestra, "S'ha produït un error inesperat: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } else {
-            JOptionPane.showMessageDialog(frame, "Selecciona una temporada per eliminar.", "Error", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(finestra, "Selecciona una temporada per eliminar.", "Error", JOptionPane.WARNING_MESSAGE);
         }
     }
 

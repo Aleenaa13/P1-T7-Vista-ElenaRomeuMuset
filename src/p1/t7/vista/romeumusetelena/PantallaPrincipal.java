@@ -5,99 +5,106 @@ import java.awt.*;
 import org.esportsapp.persistencia.IPersistencia;
 
 public class PantallaPrincipal {
-    private final IPersistencia persistencia; // Interfície de persistència
+    private final IPersistencia persistencia;
+    
+    // Constants de configuració
+    private static final int AMPLADA_FINESTRA = 900;
+    private static final int ALTURA_FINESTRA = 600;
+    private static final int ALTURA_BOTO_MENU = 40;
+    private static final Color COLOR_MENU = new Color(70, 130, 180);
+    private static final Color COLOR_BOTONS_CENTRALS = new Color(173, 216, 230);
+    private static final Color COLOR_FONS = new Color(245, 245, 245);
+    private static final Color COLOR_TEXT = new Color(50, 50, 50);
+    private static final Color COLOR_TEXT_MENU = Color.WHITE;
 
     public PantallaPrincipal(IPersistencia persistencia) {
-        this.persistencia = persistencia; // Inicialitzar la interfície de persistència
+        this.persistencia = persistencia;
+        JFrame finestra = inicialitzarFinestra();
+        configurarMenuSuperior(finestra);
+        configurarContingutPrincipal(finestra);
+        finestra.setLocationRelativeTo(null);
+        finestra.setVisible(true);
+    }
 
-        // Crear el frame principal amb mida fixa
-        JFrame frame = new JFrame("Pantalla Principal - Gestió Futbol");
-        frame.setSize(900, 600);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(null);
-        frame.setResizable(false); // Finestra no redimensionable
+    private JFrame inicialitzarFinestra() {
+        JFrame finestra = new JFrame("Pantalla Principal - Gestió Futbol");
+        finestra.setSize(AMPLADA_FINESTRA, ALTURA_FINESTRA);
+        finestra.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        finestra.setLayout(null);
+        finestra.setResizable(false);
+        finestra.getContentPane().setBackground(COLOR_FONS);
+        return finestra;
+    }
 
-        // Fons blanc trencat
-        Color blancTrencat = new Color(245, 245, 245);
-        frame.getContentPane().setBackground(blancTrencat);
-
-        // Configuració comuna dels botons del menú superior
-        int numBotons = 6;
-        int ampladaBoto = 900 / numBotons;
-        int alturaBoto = 40;
-
-        String[] nomsBotons = {"Inici", "Gestió d'Equips", "Gestió de Jugadors", "Gestió de Temporades", "Informe d'Equips", "Tancar Sessió"};
-        JButton[] botonsMenu = new JButton[numBotons];
+    private void configurarMenuSuperior(JFrame finestra) {
+        String[] nomsBotons = {"INICI", "EQUIPS", "JUGADORS", "TEMPORADES", "INFORMES", "TANCAR SESSIÓ"};
+        int ampladaBotoMenu = AMPLADA_FINESTRA / nomsBotons.length;
 
         for (int i = 0; i < nomsBotons.length; i++) {
-            botonsMenu[i] = new JButton(nomsBotons[i]);
-            botonsMenu[i].setBounds(i * ampladaBoto, 0, ampladaBoto, alturaBoto);
-            botonsMenu[i].setBackground(new Color(70, 130, 180));
-            botonsMenu[i].setForeground(Color.WHITE);
-            botonsMenu[i].setFocusPainted(false);
-            botonsMenu[i].setBorderPainted(false);
-            botonsMenu[i].setOpaque(true);
-            frame.add(botonsMenu[i]);
+            JButton boto = new JButton(nomsBotons[i]);
+            boto.setBounds(i * ampladaBotoMenu, 0, ampladaBotoMenu, ALTURA_BOTO_MENU);
+            boto.setBackground(COLOR_MENU);
+            boto.setForeground(COLOR_TEXT_MENU);
+            boto.setFocusPainted(false);
+            boto.setBorderPainted(false);
+            boto.setOpaque(true);
+
+            switch (i) {
+                /*case 0: ja hi estas aquí*/
+                case 1 -> boto.addActionListener(e -> {
+                    finestra.setVisible(false);
+                    new GestioEquips(persistencia);
+                });
+                case 2 -> boto.addActionListener(e -> {
+                    finestra.setVisible(false);
+                    new GestioJugador(persistencia);
+                });
+                case 3 -> boto.addActionListener(e -> {
+                    finestra.setVisible(false);
+                    new GestioTemporades(persistencia);
+                });
+                case 4 -> boto.addActionListener(e -> {
+                    finestra.setVisible(false);
+                    new Informes(persistencia);
+                });
+                case 5 -> boto.addActionListener(e -> TancarSessio.executar(finestra, persistencia));
+            }
+            finestra.add(boto);
         }
+    }
 
-        // Afegir acció al botó "Tancar Sessió"
-        botonsMenu[5].addActionListener(e -> TancarSessio.executar(frame, persistencia));
-
-        // Afegir accions als altres botons
-        botonsMenu[0].addActionListener(e -> mostrarPantallaInici(frame));
-        botonsMenu[1].addActionListener(e -> mostrarGestioEquips(frame));
-        botonsMenu[2].addActionListener(e -> mostrarGestioJugadors(frame));
-        botonsMenu[3].addActionListener(e -> mostrarGestioTemporades(frame));
-        botonsMenu[4].addActionListener(e -> mostrarInformeEquips(frame));
-
-        // Títol centrat
+    private void configurarContingutPrincipal(JFrame finestra) {
+        // Títol
         JLabel titol = new JLabel("GESTOR CLUB FUTBOL", SwingConstants.CENTER);
-        titol.setBounds(0, 60, 900, 40);
-        titol.setFont(new Font("SansSerif", Font.BOLD, 24));
-        titol.setForeground(new Color(70, 130, 180));
-        frame.add(titol);
+        titol.setBounds(0, 100, AMPLADA_FINESTRA, 40);
+        titol.setFont(new Font("SansSerif", Font.BOLD, 32));
+        titol.setForeground(COLOR_MENU);
+        finestra.add(titol);
 
-        // Botons centrals
-        JButton btnVisualitzacioEquips = new JButton("Visualització d'Equips");
-        btnVisualitzacioEquips.setBounds(300, 150, 300, 50);
-        btnVisualitzacioEquips.setBackground(new Color(173, 216, 230));
-        btnVisualitzacioEquips.setFocusPainted(false);
-        btnVisualitzacioEquips.addActionListener(e -> mostrarGestioEquips(frame));
-        frame.add(btnVisualitzacioEquips);
+        // Botó Gestió d'Equips
+        JButton botoEquips = new JButton("VISUALITZACIÓ D'EQUIPS");
+        botoEquips.setBounds(300, 200, 300, 60);
+        botoEquips.setBackground(COLOR_BOTONS_CENTRALS);
+        botoEquips.setForeground(COLOR_TEXT);
+        botoEquips.setFont(new Font("SansSerif", Font.BOLD, 14));
+        botoEquips.setFocusPainted(false);
+        botoEquips.addActionListener(e -> {
+            finestra.setVisible(false);
+            new GestioEquips(persistencia);
+        });
+        finestra.add(botoEquips);
 
-        JButton btnGestioJugadorsCentral = new JButton("Gestió de Jugadors");
-        btnGestioJugadorsCentral.setBounds(300, 230, 300, 50);
-        btnGestioJugadorsCentral.setBackground(new Color(173, 216, 230));
-        btnGestioJugadorsCentral.setFocusPainted(false);
-        btnGestioJugadorsCentral.addActionListener(e -> mostrarGestioJugadors(frame));
-        frame.add(btnGestioJugadorsCentral);
-
-        // Mostrar el frame
-        frame.setLocationRelativeTo(null); // Centrar la finestra
-        frame.setVisible(true);
-    }
-
-    private void mostrarPantallaInici(JFrame frame) {
-        JOptionPane.showMessageDialog(frame, "Pantalla d'Inici");
-    }
-
-    private void mostrarGestioEquips(JFrame frame) {
-        frame.setVisible(false);
-        new GestioEquips(persistencia); // Passa la persistència a la nova pantalla
-    }
-
-    private void mostrarGestioJugadors(JFrame frame) {
-        frame.setVisible(false);
-        new GestioJugador(persistencia); // Passa la persistència a la nova pantalla
-    }
-
-    private void mostrarGestioTemporades(JFrame frame) {
-        frame.setVisible(false);
-        new GestioTemporades(persistencia); // Passa la persistència a la nova pantalla
-    }
-
-    private void mostrarInformeEquips(JFrame frame) {
-        frame.setVisible(false);
-        // Implementar si hi ha una classe InformeEquips
+        // Botó Gestió de Jugadors
+        JButton botoJugadors = new JButton("VISUALITZACIÓ DE JUGADORS");
+        botoJugadors.setBounds(300, 280, 300, 60);
+        botoJugadors.setBackground(COLOR_BOTONS_CENTRALS);
+        botoJugadors.setForeground(COLOR_TEXT);
+        botoJugadors.setFont(new Font("SansSerif", Font.BOLD, 14));
+        botoJugadors.setFocusPainted(false);
+        botoJugadors.addActionListener(e -> {
+            finestra.setVisible(false);
+            new GestioJugador(persistencia);
+        });
+        finestra.add(botoJugadors);
     }
 }
